@@ -2,6 +2,9 @@
 import express from "express";
 import activityRouter from "./services/ActivityService/handler.js";
 import userRouter from "./services/UserService/handler.js";
+import walletRouter from "./services/WalletService/handler.js";
+import paymentRouter from "./services/PaymentService/handler.js";
+
 
 
 const app = express();
@@ -17,6 +20,8 @@ app.get("/", (req, res) => {
 // Routers
 app.use("/activity", activityRouter);
 app.use("/users", userRouter);
+app.use("/wallet", walletRouter);
+app.use("/payment", paymentRouter);
 
 
 
