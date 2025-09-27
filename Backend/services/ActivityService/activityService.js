@@ -39,6 +39,7 @@ export const createActivity = async (data) => {
             location: location,
             budget: budget,
             wallet_id: wallet_id,
+            user_id: userId  // ใครสร้าง
         })
 
         if (!activity) {
@@ -46,8 +47,6 @@ export const createActivity = async (data) => {
         }
 
         return activity;
-
-
         
     } catch (error) {
         
@@ -56,4 +55,79 @@ export const createActivity = async (data) => {
     }
 
     
+}
+
+
+// Get Activity by ID
+export const getActivityById = async (id) => {
+    try {
+
+        // หา activity
+        const activity = await Activity.findById(id);
+
+        if (!activity) {
+            throw new Error("Activity not found");
+        }
+
+        return activity;
+
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+
+// Update Activity
+export const updateActivity = async (id, data) => {
+    try {
+
+        // หา activity
+        const activity = await Activity.findById(id);
+        if (!activity) {
+            throw new Error("Activity not found");
+        }
+
+
+
+        // อัพเดต activity
+        const updatedActivity = await Activity.findByIdAndUpdate(
+            id, data, { new: true }
+        );
+
+        if (!updatedActivity) {
+            throw new Error("Activity not updated");
+        }
+
+
+        return { message: "Activity update successfully" };
+
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+
+// Delete Activity
+export const deleteActivity = async (id) => {
+    try {
+        // หา activity
+        const activity = await Activity.findById(id);
+
+        if (!activity) {
+            throw new Error("Activity not found");
+        }
+
+        // ลบ activity
+        await Activity.findByIdAndDelete(id);
+
+        return { message: "Activity deleted successfully" };
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
 }
