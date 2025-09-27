@@ -1,14 +1,15 @@
+
+import express from "express";
 import activityRouter from "./services/ActivityService/handler.js";
 
 
-const express = require("express");
-const App = express();
+const app = express();
 const port = 3000;
 
 app.use(express.json());
 
 
-App.get("/", (req, res) => {
+app.get("/", (req, res) => {
     res.send("Hello World!");
 });
 
@@ -17,7 +18,7 @@ app.use("/activity", activityRouter);
 
 
 
-App.listen(port, () => {
+app.listen(port, () => {
     console.log(`Server running at <http://localhost>:${port}/`);
 });
 
