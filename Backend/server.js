@@ -1,6 +1,7 @@
 
 import express from "express";
 import activityRouter from "./services/ActivityService/handler.js";
+import userRouter from "./services/UserService/handler.js";
 
 
 const app = express();
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
 
 // Routers
 app.use("/activity", activityRouter);
+app.use("/users", userRouter);
 
 
 
