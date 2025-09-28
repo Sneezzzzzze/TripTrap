@@ -1,9 +1,12 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { ChevronRight } from 'lucide-react'; 
+import { ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Router } from 'next/router';
 
 export default function WelcomeScreen() {
+  const router = useRouter();
 
   return (
     <div className="relative flex flex-col h-screen overflow-hidden antialiased bg-text-[#F6FAFD]">
@@ -60,8 +63,9 @@ export default function WelcomeScreen() {
         {/* 3. Bottom Action Button */}
         <div className="w-full p-6 bg-[#F6FAFD]">
             <button
+                onClick={() => router.push("/register")}
                 // Using arbitrary value for the button background color
-                className="w-full py-4 text-white font-semibold rounded-2xl shadow-lg transition-transform transform hover:scale-[1.01] active:scale-[0.99] bg-[#0C5A66]"
+                className="w-full py-4 mb-11 text-white font-semibold rounded-2xl shadow-lg transition-transform transform hover:scale-[1.01] active:scale-[0.99] bg-[#0C5A66]"
             >
                 <span className="text-lg">เริ่มต้นเลย</span> {/* Start Now */}
                 <ChevronRight className="inline-block ml-2 w-5 h-5" />
