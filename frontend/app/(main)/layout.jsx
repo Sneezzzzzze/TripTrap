@@ -5,8 +5,8 @@ import Navbar from "../components/์Navbar";
 export default function MainLayout({ children }) {
   const pathname = usePathname();
 
-  // ซ่อน Navbar ถ้าอยู่ที่ /main เท่านั้น
-  const hideNavbar = pathname === "/main";
+  // ซ่อน Navbar
+  const hideNavbar = pathname === "/";
   return (
     <div>
         {children}
