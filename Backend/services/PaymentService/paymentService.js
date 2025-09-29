@@ -1,5 +1,5 @@
 //Create Payment
-const createpayment = async (data) => {
+export const createPayment = async (data) => {
     try {
 
         //data
