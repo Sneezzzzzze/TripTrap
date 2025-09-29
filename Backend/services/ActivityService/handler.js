@@ -1,6 +1,6 @@
 // handler.js 
 import express from "express";
-import { createActivity} from "./activityService.js";
+import { createActivity, getActivityById, updateActivity, deleteActivity} from "./activityService.js";
 
 
 const router = express.Router();
