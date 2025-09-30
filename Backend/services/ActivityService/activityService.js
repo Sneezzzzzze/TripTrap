@@ -82,6 +82,7 @@ export const getActivity = async (user_id) => {
         a.user_id AS creator_id,
         json_agg(
             json_build_object(
+                'activity_members', m.id,
                 'user_id', m.user_id,
                 'username', u.username,
                 'fullname', u.first_name || ' ' || u.last_name,
@@ -134,6 +135,7 @@ export const getActivityById = async (id) => {
         a.user_id AS creator_id,
         json_agg(
             json_build_object(
+                'activity_members', m.id,
                 'user_id', m.user_id,
                 'username', u.username,
                 'fullname', u.first_name || ' ' || u.last_name,
