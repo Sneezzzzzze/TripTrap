@@ -1,30 +1,44 @@
 import bcrypt from "bcryptjs";
+import { conn } from "../../utils/db.js";
 
+const TABLE_NAME = "users";
 export const createUser = async (data) => {
     try {
-        username = data.username;
-        first_name = data.first_name;
-        last_name = data.last_name;
-        email = data.email;
-        password = data.password;
+        const { username, first_name, last_name, email, password } = data;
 
         if (!username || !first_name || !last_name || !email || !password) {
             throw new Error("Please provide all required fields.");
         }
 
-        const duplicate = await User.findOne({ where: { username } });
-        if (duplicate) {
-            throw new Error("Username already exists.");
+        const checkSql = `
+          SELECT id 
+          FROM ${TABLE_NAME} 
+          WHERE username = $1 OR email = $2 
+          LIMIT 1
+        `;
+        const checkRes = await conn.query(checkSql, [username, email]);
+
+        if (checkRes.rows[0]) {
+            throw new Error("Username or Email already exists.");
         }
-        
+
+        // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-        const createdUser = await User.create({
+
+        const sql = `
+          INSERT INTO ${TABLE_NAME} (username, first_name, last_name, email, password, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+          RETURNING *;
+        `;
+        const Uservalues = [
             username,
             first_name,
             last_name,
             email,
-            password: hashedPassword,
-        });
+            hashedPassword,
+        ];
+        const UserRes = await conn.query(sql, Uservalues);
+        const createdUser = UserRes.rows[0];
 
         if (!createdUser) {
             throw new Error("Failed to create user.");
@@ -37,26 +51,35 @@ export const createUser = async (data) => {
     }
 };
 
-export const getUserById = async (id) => {
+export const getAllUsers = async () => {
     try {
-        const user = await User.findById(id);
-        if (!user) {
-            throw new Error("User not found.");
-        }
-        return user;
+        const sql = `SELECT id, username, first_name, last_name, email, created_at, updated_at 
+                      FROM users`;
+        const result = await conn.query(sql);
+
+        // if (result.rows.length === 0) {
+        //     throw new Error("No users found.");
+        // }
+
+        return result.rows;
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
     }
 };
 
-export const getUsers = async () => {
+export const getUserById = async (id) => {
     try {
-        const users = await User.findAll();
-        if (!users) {
-            throw new Error("No users found.");
+        const sql = `SELECT id, username, first_name, last_name, email, created_at, updated_at 
+                      FROM users 
+                      WHERE id = $1`;
+        const result = await conn.query(sql, [id]);
+
+        if (!result.rows[0]) {
+            throw new Error("User not found.");
         }
-        return users;
+
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
@@ -64,23 +87,67 @@ export const getUsers = async () => {
 };
 
 export const updateUser = async (id, data) => {
+    const { username, first_name, last_name, email, password } = data;
     try {
-        const user = await User.findById(id);
-        if (!user) {
+        const checkSql = `SELECT * FROM users WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [id]);
+
+        if (!checkRes.rows[0]) {
             throw new Error("User not found.");
         }
 
-        if (data.password) {
-            data.password = await bcrypt.hash(data.password, 10);
+        const duplicateSql = `
+          SELECT id 
+          FROM ${TABLE_NAME} 
+          WHERE (username = $1 OR email = $2) AND id != $3
+          LIMIT 1
+        `;
+        const duplicateRes = await conn.query(duplicateSql, [
+            username,
+            email,
+            id,
+        ]);
+
+        if (duplicateRes.rows[0]) {
+            throw new Error("Username or Email already exists.");
         }
-        const updatedUser = await User.findByIdAndUpdate(id, data, {
-            new: true,
-        });
-        if (!updatedUser) {
+
+
+        // hash password if provided
+        let hashedPassword = null;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
+        const sql = `
+            UPDATE users
+            SET 
+                username = COALESCE($1, username),
+                first_name = COALESCE($2, first_name),
+                last_name = COALESCE($3, last_name),
+                email = COALESCE($4, email),
+                password = COALESCE($5, password),
+                updated_at = NOW()
+            WHERE id = $6
+            RETURNING id, username, first_name, last_name, email, created_at, updated_at;
+        `;
+
+        const values = [
+            username,
+            first_name,
+            last_name,
+            email,
+            hashedPassword,
+            id,
+        ];
+
+        const result = await conn.query(sql, values);
+
+        if (!result.rows[0]) {
             throw new Error("Failed to update user.");
         }
 
-        return { message: "User updated successfully" };
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
@@ -89,13 +156,21 @@ export const updateUser = async (id, data) => {
 
 export const deleteUser = async (id) => {
     try {
-        const user = await User.findById(id);
-        if (!user) {
+        const checkSql = `SELECT * FROM users WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [id]);
+
+        if (!checkRes.rows[0]) {
             throw new Error("User not found.");
         }
-        await User.findByIdAndDelete(id);
 
-        return { message: "User deleted successfully" };
+        const sql = `DELETE FROM users WHERE id = $1 RETURNING id`;
+        const result = await conn.query(sql, [id]);
+
+        if (!result.rows[0]) {
+            throw new Error("Failed to delete user.");
+        }
+
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
