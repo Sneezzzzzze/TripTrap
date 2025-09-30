@@ -1,6 +1,8 @@
+import { conn } from "../../utils/db.js";
+
+const TABLE_NAME = "friendships";
+
 // Create (Send friend request)
-
-
 export const createFriendship = async (data) => {
     try {
         const { requester_id, receiver_id } = data;
@@ -10,29 +12,48 @@ export const createFriendship = async (data) => {
         }
 
         // check requester
-        const requester = await User.findById(requester_id);
-        if (!requester) {
+        const requesterSql = `SELECT id FROM users WHERE id = $1 LIMIT 1`;
+        const requesterRes = await conn.query(requesterSql, [requester_id]);
+        if (!requesterRes.rows[0]) {
             throw new Error("Requester not found.");
         }
 
         // check receiver
-        const receiver = await User.findById(receiver_id);
-        if (!receiver) {
+        const receiverSql = `SELECT id FROM users WHERE id = $1 LIMIT 1`;
+        const receiverRes = await conn.query(receiverSql, [receiver_id]);
+        if (!receiverRes.rows[0]) {
             throw new Error("Receiver not found.");
         }
 
-        // create new request
-        const friendship = await Friendship.create({
+        // (ขอ request ซ้ำไม่ได้)
+        const duplicateSql = `
+            SELECT id FROM ${TABLE_NAME} 
+            WHERE (requester_id = $1 AND receiver_id = $2) 
+              OR (requester_id = $2 AND receiver_id = $1)
+            LIMIT 1
+        `;
+        const duplicateRes = await conn.query(duplicateSql, [
             requester_id,
             receiver_id,
-            status: "Pending",
-        });
+        ]);
 
-        if (!friendship) {
+        if (duplicateRes.rows[0]) {
+            throw new Error("Friendship request already exists.");
+        }
+
+        const sql = `
+            INSERT INTO ${TABLE_NAME} (requester_id, receiver_id, status)
+            VALUES ($1, $2, 'Pending')
+            RETURNING *;
+        `;
+        const values = [requester_id, receiver_id];
+        const result = await conn.query(sql, values);
+
+        if (!result.rows[0]) {
             throw new Error("Failed to create friendship request.");
         }
 
-        return friendship;
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
@@ -42,15 +63,17 @@ export const createFriendship = async (data) => {
 // Get all friends of a user
 export const getAllFriends = async (userId) => {
     try {
-        const friends = await Friendship.findAll({
-            where: [
-                { status: "Accepted", requester_id: userId },
-                { status: "Accepted", receiver_id: userId },
-            ],
-        });
+        const sql = `
+            SELECT *
+            FROM ${TABLE_NAME}
+            WHERE status = 'Accepted' 
+              AND (requester_id = $1 OR receiver_id = $1)
+        `;
+        const result = await conn.query(sql, [userId]);
 
-        return friends;
+        return result.rows;
     } catch (error) {
+        console.log("Error:", error);
         throw new Error(error.message);
     }
 };
@@ -60,18 +83,19 @@ export const getSentRequests = async (userId) => {
     try {
         if (!userId) throw new Error("Please provide userId");
 
-        const requests = await Friendship.findAll({
-            where: {
-                requester_id: userId,
-                status: "Pending",
-            },
-        });
+        const sql = `
+            SELECT *
+            FROM ${TABLE_NAME}
+            WHERE requester_id = $1
+              AND status = 'Pending'
+        `;
+        const result = await conn.query(sql, [userId]);
 
-        if (!requests) {
+        if (!result.rows.length) {
             throw new Error("No pending sent friend requests found.");
         }
 
-        return requests;
+        return result.rows;
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
@@ -79,60 +103,79 @@ export const getSentRequests = async (userId) => {
 };
 
 // Get pending friend requests received by user ใครส่งคำขอมาให้เราบ้าง
-export const getRecivedRequests = async (userId) => {
+export const getReceivedRequests = async (userId) => {
     try {
         if (!userId) throw new Error("Please provide userId");
 
-        const requests = await Friendship.findAll({
-            where: {
-                receiver_id: userId,
-                status: "Pending",
-            },
-        });
+        const sql = `
+            SELECT *
+            FROM ${TABLE_NAME}
+            WHERE receiver_id = $1
+              AND status = 'Pending'
+        `;
+        const result = await conn.query(sql, [userId]);
 
-        if (!requests) {
-            throw new Error("No pending friend requests found.");
+        if (!result.rows.length) {
+            throw new Error("No pending received friend requests found.");
         }
 
-        return requests;
+        return result.rows;
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
     }
 };
+
 
 // Update (Accept or Reject)
 export const updateFriendshipStatus = async (id, status) => {
     try {
-        const friendship = await Friendship.findById(id);
-        if (!friendship) {
+        const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [id]);
+
+        if (!checkRes.rows[0]) {
             throw new Error("Friendship not found.");
         }
 
-        friendship.status = status;
-        await friendship.save();
+        const updateSql = `
+            UPDATE ${TABLE_NAME}
+            SET status = $1
+            WHERE id = $2
+            RETURNING *;
+        `;
+        const result = await conn.query(updateSql, [status, id]);
 
-        // const updatedFriendshipStatus = await Friendship.findByIdandUpdate(id, data, {
-        //     new: true,
-        // });
+        if (!result.rows[0]) {
+            throw new Error("Failed to update friendship status.");
+        }
 
-        return friendship;
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
     }
 };
 
+
 // Delete (Cancel request or Unfriend)
 export const deleteFriendship = async (id) => {
     try {
-        const friendship = await Friendship.findById(id);
-        if (!friendship) {
+        const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [id]);
+
+        if (!checkRes.rows[0]) {
             throw new Error("Friendship not found.");
         }
 
-        await friendship.destroy();
-        return { message: "Friendship deleted successfully" };
+        const deleteSql = `DELETE FROM ${TABLE_NAME} WHERE id = $1 RETURNING *`;
+        const result = await conn.query(deleteSql, [id]);
+
+        if (!result.rows[0]) {
+            throw new Error("Failed to delete friendship.");
+        }
+
+        return result.rows[0]
+
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);

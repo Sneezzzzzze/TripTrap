@@ -3,7 +3,7 @@ import {
     createFriendship,
     getAllFriends,
     getSentRequests,
-    getRecivedRequests,
+    getReceivedRequests,
     updateFriendshipStatus,
     deleteFriendship,
 } from "./friendshipService.js";
@@ -14,7 +14,10 @@ const router = express.Router();
 router.post("/", async (req, res) => {
     try {
         const friendship = await createFriendship(req.body);
-        res.status(201).json(friendship);
+        res.status(201).json({
+            message: "success",
+            data: friendship,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -24,7 +27,10 @@ router.post("/", async (req, res) => {
 router.get("/friends/:userId", async (req, res) => {
     try {
         const friends = await getAllFriends(req.params.userId);
-        res.status(200).json(friends);
+        res.status(200).json({
+            message: "success",
+            data: friends,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -34,7 +40,10 @@ router.get("/friends/:userId", async (req, res) => {
 router.get("/sent/:userId", async (req, res) => {
     try {
         const sentRequests = await getSentRequests(req.params.userId);
-        res.status(200).json(sentRequests);
+        res.status(200).json({
+            message: "success",
+            data: sentRequests,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -43,8 +52,11 @@ router.get("/sent/:userId", async (req, res) => {
 // ดูคำขอที่เรารับมา (Pending)
 router.get("/received/:userId", async (req, res) => {
     try {
-        const receivedRequests = await getRecivedRequests(req.params.userId);
-        res.status(200).json(receivedRequests);
+        const receivedRequests = await getReceivedRequests(req.params.userId);
+        res.status(200).json({
+            message: "success",
+            data: receivedRequests,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -57,7 +69,10 @@ router.put("/:id", async (req, res) => {
             req.params.id,
             req.body.status
         );
-        res.status(200).json(friendship);
+        res.status(200).json({
+            message: "update successfully",
+            data: friendship,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -67,7 +82,10 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const result = await deleteFriendship(req.params.id);
-        res.status(200).json(result);
+        res.status(200).json({
+            message: "deleted successfully",
+            data: result,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

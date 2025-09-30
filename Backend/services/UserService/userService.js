@@ -30,21 +30,20 @@ export const createUser = async (data) => {
           VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
           RETURNING *;
         `;
-        const Uservalues = [
+        const values = [
             username,
             first_name,
             last_name,
             email,
             hashedPassword,
         ];
-        const UserRes = await conn.query(sql, Uservalues);
-        const createdUser = UserRes.rows[0];
+        const result = await conn.query(sql, values);
 
-        if (!createdUser) {
+        if (!result.rows[0]) {
             throw new Error("Failed to create user.");
         }
 
-        return createdUser;
+        return result.rows[0];
     } catch (error) {
         console.log("Error:", error);
         throw new Error(error.message);
