@@ -1,4 +1,6 @@
 // Create (Send friend request)
+
+
 export const createFriendship = async (data) => {
     try {
         const { requester_id, receiver_id } = data;

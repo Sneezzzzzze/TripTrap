@@ -235,7 +235,9 @@ export const updateActivity = async (id, data) => {
 
 // Delete Activity
 export const deleteActivity = async (id) => {
+    
     try {
+
         // เช้ค activity id
         const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
         const checkRes = await conn.query(checkSql, [id]);

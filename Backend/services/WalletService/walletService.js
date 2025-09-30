@@ -1,67 +1,95 @@
+import { ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
+// import { 
+//     rdsDataClient, 
+//     dbConfig,         // ดึง Config มาใช้
+//     getFieldValue 
+// } from 'rds_service.js';
+import { conn } from "../../utils/db.js";
+
+
+const TABLE_NAME = "wallets"
+
+
 // Create Wallet
 export const createWallet = async (data) => {
 
     try {
         
         //data
-        userId = data.userId; //Bank's owner
-        acountNumber = data.acountNumber;
-        bankName = data.bankName;
+        const {
+            userId, //Bank's owner
+            account_number,
+            bank_name
+
+        } = data;
 
         // check data
-        if (!userId || !acountNumber || !bankName) {
+        if (!userId || !account_number || !bank_name) {
             throw new Error("Please provide all required fields.");
         }
 
         // check user
-        const user = await User.findById(userId);
+        const checkSql = `SELECT * FROM users WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [userId]);
 
-        if (!user){
+        if (!checkRes.rows[0]) {
             throw new Error("User not found.");
         }
 
-        // create waller
-        const createdWallet = await Wallet.create({
-            userId : userId,
-            acountNumber : acountNumber,
-            bankName : bankName
-        })
+        
 
-        if (!createdWallet) {
-            throw new Error("Failed to create Wallet.")
-        }
+        // create Wallet
+        const sql = `
+                    INSERT INTO ${TABLE_NAME}
+                    (user_id, account_number, bank_name, created_at, updated_at)
+                    VALUES ($1, $2, $3, NOW(), NOW())
+                    RETURNING *;
+                `;
+        
+        const walletValues  = [userId,account_number, bank_name];
+        const walletRes  = await conn.query(sql, walletValues);
+        const wallet = walletRes.rows[0];
 
-        return createdWallet;
+        
+        return wallet;
 
     } catch (error) {
         console.log("Error :", error);
         throw new Error(error.message);
     }
 }
+
+
 
 // Get Wallet By Id
 export const getWalletById = async (id) => {
-    try {
-        const wallet = await Wallet.findById(id);
 
-        if (!wallet) {
-            throw new Error("Wallet not found");
-        }
+    try {
+
+        const sql = `SELECT * FROM  ${TABLE_NAME} WHERE id = $1`;
+        const walletRes  = await conn.query(sql, [id]);
+        const wallet = walletRes.rows;
+
+      
         return wallet;
+
+
     } catch (error) {
         console.log("Error :", error);
         throw new Error(error.message);
     }
+ 
 }
 
-// Get All Wallet
-export const getWallet = async () => {
-    try {
-        const wallets = await Wallet.findAll();
 
-        if (!wallets) {
-            throw new Error("No wallet created.")
-        }
+
+// Get All Wallet get by user_id
+export const getWallet = async (UserId) => {
+
+    try {
+        const sql = `SELECT * FROM  ${TABLE_NAME} WHERE user_id = $1`;
+        const walletRes  = await conn.query(sql, [UserId]);
+        const wallets = walletRes.rows;
 
         return wallets;
     }
@@ -71,26 +99,41 @@ export const getWallet = async () => {
     }
 }
 
+
+
 // Update Wallet
 export const updateWallet = async (id, data) => {
+
+    const {
+        account_number,
+        bank_name,
+    } = data;
+
     try {
         // find wallet
-        const wallet = await Wallet.findById(id);
+        const checksql = `SELECT * FROM  ${TABLE_NAME} WHERE id = $1`;
+        const walletRes  = await conn.query(checksql, [id]);
+        const wallet = walletRes.rows;
 
         if (!wallet) {
-            throw new Error("Wallet not found.");
+            throw new Error("Wallet not found");
         }
 
         // update wallet
-        const updatedWallet = await Wallet.findByIdandUpdate(
-            id, data, {new : true}
-        );
+       const sql = `
+            UPDATE ${TABLE_NAME}
+            SET 
+                account_number = $1,
+                bank_name = $2,
+                updated_at = NOW()
+            WHERE id = $3
+            RETURNING *;
+        `;
+        const values = [account_number, bank_name, id];
+        const res = await conn.query(sql, values);
 
-        if (!updatedWallet) {
-            throw new Error("Failed to update activity.")
-        }
+        return res;
 
-        return { message: "Wallet updated successfully" };
 
     } catch (error) {
         console.log("Error :", error)
@@ -98,20 +141,24 @@ export const updateWallet = async (id, data) => {
     }
 }
 
+
 // Delete Wallet
 export const deleteWallet = async (id) => {
     try {
         // find wallet
-        const wallet = await Wallet.findById(id);
+        const checksql = `SELECT * FROM  ${TABLE_NAME} WHERE id = $1`;
+        const walletRes  = await conn.query(checksql, [id]);
+        const wallet = walletRes.rows;
 
         if (!wallet) {
-            throw new Error("Wallet not found.");
+            throw new Error("Wallet not found");
         }
 
-        // update wallet
-        await Wallet.findByIdandDelete(id);
+        // Delete Wallet
+        const sql = `DELETE FROM ${TABLE_NAME} WHERE id = $1 RETURNING *`;
+        const res = await conn.query(sql, [id]);
 
-        return { message: "Wallet deleted successfully" };
+        return res;
 
     } catch (error) {
         console.log("Error :", error)
