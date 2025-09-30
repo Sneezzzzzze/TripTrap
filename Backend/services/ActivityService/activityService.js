@@ -200,7 +200,7 @@ export const updateActivity = async (id, data) => {
         const checkRes = await conn.query(checkSql, [id]);
 
         if (!checkRes.rows[0]) {
-            throw new Error("Activity not found");
+            return [];
         }
 
 
@@ -243,7 +243,7 @@ export const deleteActivity = async (id) => {
         const checkRes = await conn.query(checkSql, [id]);
 
         if (!checkRes.rows[0]) {
-            throw new Error("Activity not found");
+            return [];
         }
 
         // ลบ activity
@@ -272,17 +272,24 @@ export const addMember = async(data) =>{
         if (!members || members.length === 0) {
             return [];
         }
-        
+
         const addedMembers = [];
 
         for (const userId of members) {
-            const query = `
-                INSERT INTO activity_members (activity_id, user_id, role, created_at, updated_at)
-                VALUES ($1, $2, $3, NOW(), NOW())
-                RETURNING *;
-            `;
-            const res = await conn.query(query, [activityId, userId, role]);
-            addedMembers.push(res.rows[0]);
+
+            const checkSql = `SELECT * FROM activity_members WHERE user_id = $1 AND activity_id = $2`;
+            const checkRes = await conn.query(checkSql, [userId, activityId]);
+
+            // เพิ่มแค่คนที่ยังไม่ได้อยุ่ใน กลุ่มกิจกรรม
+            if (!checkRes.rows[0]) {
+                const query = `
+                    INSERT INTO activity_members (activity_id, user_id, role, created_at, updated_at)
+                    VALUES ($1, $2, $3, NOW(), NOW())
+                    RETURNING *;
+                `;
+                const res = await conn.query(query, [activityId, userId, role]);
+                addedMembers.push(res.rows[0]);
+            }
         }
 
         return addedMembers;
@@ -294,6 +301,34 @@ export const addMember = async(data) =>{
         throw new Error(error.message);
     }
 
+}
+
+
+// Delete  Member Activity
+export const deleteMember = async (id) => {
+
+    
+    try {
+
+        // เช้ค activity id
+        const checkSql = `SELECT * FROM activity_members WHERE id = $1`;
+        const checkRes = await conn.query(checkSql, [id]);
+
+        if (!checkRes.rows[0]) {
+            return [];
+        }
+
+        // Delete  Member
+        const sql = `DELETE FROM activity_members WHERE id = $1 RETURNING *`;
+        const res = await conn.query(sql, [id]);
+
+        return res;
+
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
 }
 
 

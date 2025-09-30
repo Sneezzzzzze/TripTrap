@@ -5,7 +5,8 @@ import { createActivity,
     getActivityById, 
     updateActivity, 
     deleteActivity,
-    addMember
+    addMember,
+    deleteMember
 
 } from "./activityService.js";
 
@@ -77,12 +78,14 @@ router.put("/:id", async (req, res) => {
     try {
         const result = await updateActivity(req.params.id, req.body);
         
-        if (result){
-            res.status(200).json({
-                message: "update successfully",
-            });
+        if (!result || result.length === 0){
+             return res.status(404).json({ error: "Activity not found" });
         }
-        
+
+        res.status(200).json({
+            message: "update successfully",
+        });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }  
@@ -94,11 +97,15 @@ router.put("/:id", async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const result = await deleteActivity(req.params.id);
-        if (result){
-            res.status(200).json({
-                message: "deleted successfully",
-            });
+
+        if (!result || result.length === 0){
+             return res.status(404).json({ error: "Activity not found" });
         }
+
+        res.status(200).json({
+            message: "deleted successfully",
+        });
+        
 
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -110,12 +117,37 @@ router.delete('/:id', async (req, res) => {
 router.post('/member', async (req, res) => {
     try {
         const result = await addMember(req.body);
-        if(result){
-            res.status(201).json({
-                message: "success",
-                data : result
+
+        if (!result || result.length === 0){
+             return res.status(404).json({ error: "Activity not found" });
+        }
+
+
+        res.status(201).json({
+            message: "success",
+            data : result
         });
-    }
+    
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }   
+})
+
+
+// delete member
+router.delete('/member/:id', async (req, res) => {
+    try {
+        const result = await deleteMember(req.params.id);
+
+        if (!result || result.length === 0){
+             return res.status(404).json({ error: "not found" });
+        }
+
+        res.status(200).json({
+            message: "deleted successfully",
+        });
+        
 
     } catch (err) {
         res.status(500).json({ error: err.message });

@@ -66,6 +66,10 @@ router.put("/:id", async (req, res) => {
     try {
         const result = await updateWallet(req.params.id, req.body);
         
+        if (!result || result.length === 0) {
+            return res.status(404).json({ error: "Wallet not found" });
+        }
+
         if (result){
             res.status(200).json({
                 message: "update successfully",
@@ -84,6 +88,10 @@ router.delete("/:id", async (req, res) => {
     try {
 
         const result = await deleteWallet(req.params.id);
+
+        if (!result || result.length === 0) {
+            return res.status(404).json({ error: "Wallet not found" });
+        }
 
         if (result){
             res.status(200).json({

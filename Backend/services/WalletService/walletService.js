@@ -116,7 +116,7 @@ export const updateWallet = async (id, data) => {
         const wallet = walletRes.rows;
 
         if (!wallet) {
-            throw new Error("Wallet not found");
+            return [];
         }
 
         // update wallet
@@ -151,7 +151,7 @@ export const deleteWallet = async (id) => {
         const wallet = walletRes.rows;
 
         if (!wallet) {
-            throw new Error("Wallet not found");
+            return [];
         }
 
         // Delete Wallet
