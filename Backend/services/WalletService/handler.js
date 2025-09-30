@@ -1,12 +1,12 @@
 import express from "express";
-import { createdWallet, deleteWallet, getWalletById, updateWallet } from "./walletService";
+import { createWallet, deleteWallet, getWalletById, updateWallet } from "./walletService.js";
 
-const router = express.router();
+const router = express.Router();
 
 //create wallet
 router.post("/wallet", async (req, res) => {
     try {
-        const wallet = await createdWallet(req.body);
+        const wallet = await createWallet(req.body);
         res.status(201).json(wallet);
 
     }catch (err) {

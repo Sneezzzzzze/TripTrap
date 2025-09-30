@@ -1,7 +1,7 @@
 import express from "express";
 import { createPayment, deletePayment, getPaymentById, updatePayment} from "./paymentService.js";
 
-const router = express.router();
+const router = express.Router();
 
 //create payment
 router.post("/payment", async (req, res) => {

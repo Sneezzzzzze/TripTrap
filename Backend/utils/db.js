@@ -1,27 +1,39 @@
 
-// import { Client } from "pg";
+// db.js
+import pkg from "pg";
+const { Pool } = pkg;
+import dotenv from "dotenv";
 
-// const client = new Client({
-//   host: "your-db-endpoint.rds.amazonaws.com",
-//   port: 5432,
-//   user: "your-username",
-//   password: "your-password",
-//   database: "your-database-name"
-// });
+dotenv.config();
 
 
-// async function Connection() {
-//   try {
-//     await client.connect();
-//     console.log("Connected to RDS PostgreSQL");
+export const conn = new Pool({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT) || 25060,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
-//     const res = await client.query("SELECT NOW()");
-//     console.log("Server time:", res.rows[0]);
+// ฟังก์ชัน query 
+export async function query(sql, params) {
 
-//     await client.end();
-//   } catch (err) {
-//     console.error("Connection error", err);
-//   }
-// }
+  const res = await conn.query(sql, params);
+  return res.rows;
 
-// Connection();
+}
+
+async function testConn() {
+  try {
+    const res = await conn.query("SELECT NOW()");
+    console.log("Connected! Server time:", res.rows[0].now);
+
+  } catch (err) {
+    console.error("Connection error:", err);
+  }
+}
+
+testConn();
