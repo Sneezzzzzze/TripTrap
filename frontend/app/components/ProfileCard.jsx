@@ -3,7 +3,7 @@
 export default function ProfileCard() {
     return (
         <>
-            <div className="border rounded-4xl p-2 px-6">
+            <div className="border rounded-4xl p-2 px-6 mb-5 bg-white">
                 <table className="w-full">
                     <tbody>
                         <tr className="border-b">

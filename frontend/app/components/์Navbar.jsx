@@ -31,7 +31,7 @@ export default function Navbar() {
                 <img
                     src={iconSrc}
                     alt={label}
-                    className={`object-contain mb-1 ${className}`}
+                    className={`object-contain mb-1 w-7 h-7 ${className}`}
                 />
                 {label}
             </button>
@@ -39,7 +39,7 @@ export default function Navbar() {
     };
 
     return (
-        <div className='fixed bottom-0 w-full bg-blue-100 border-t-1'>
+        <div className='fixed bottom-0 w-full bg-blue-100 border-t-1 z-40'>
             <nav className="flex justify-around py-3 text-sm px-[10px]">
                 <NavButton href="/friends" iconName="group" label="เพื่อน" />
                 <NavButton href="/activities" iconName="Calendar" label="กิจกรรม" />
