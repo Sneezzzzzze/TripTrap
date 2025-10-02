@@ -64,7 +64,7 @@ export default function Login() {
                 <span className="text-lg">เข้าสู่ระบบ</span>
             </button>
 
-            <p className="text-sm text-gray-500 max-w-xs">
+            <p className="text-sm text-gray-500">
                 มีบัญชีแล้ว ?
                 <a onClick={() => router.push("/register")} 
                   className='font-semibold active:underline ml-1'>ลงทะเบียน</a>

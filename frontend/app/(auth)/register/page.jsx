@@ -59,7 +59,7 @@ export default function Register() {
             >
                 <span className="text-lg">ลงทะเบียน</span>
             </button>
-            <p className="text-sm text-gray-500 max-w-xs text-center">
+            <p className="text-sm text-gray-500 text-center">
                 มีบัญชีแล้ว ?
                 <a onClick={() => router.push("/login")} className='font-semibold active:underline ml-1'>เข้าสู่ระบบ</a>
             </p>
