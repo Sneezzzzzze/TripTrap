@@ -64,8 +64,8 @@ export const createActivity = async (data) => {
     
 }
 
-// Get Activity by User ID
-export const getActivity = async (user_id) => {
+// Get Activity by User ID กิจกรรมที่สร้าง
+export const getActivities = async (user_id) => {
 
     // หา activity
     const sql = `
@@ -105,6 +105,59 @@ export const getActivity = async (user_id) => {
         const activityRes  = await conn.query(sql, values);
         const activity = activityRes.rows;
         console.log(activity)
+        return activity;
+
+
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+
+// Get Activity by User ID กิจกรรมที่เข้าร่วม
+export const getJoinedActivities = async (user_id) => {
+
+    // หา activity
+    const sql = `
+        SELECT 
+        a.id AS activity_id,
+        a.name,
+        a.description,
+        a.date,
+        a.start_date,
+        a.end_date,
+        a.location,
+        a.budget,
+        a.wallet_id,
+        a.user_id AS creator_id,
+        json_agg(
+            json_build_object(
+                'member_id', m.id,
+                'user_id', m.user_id,
+                'username', u.username,
+                'fullname', u.first_name || ' ' || u.last_name,
+                'role', m.role
+            )
+        ) AS members
+    FROM activities a
+    LEFT JOIN activity_members m
+        ON a.id = m.activity_id
+    LEFT JOIN users u
+        ON u.id = m.user_id
+    WHERE m.user_id = $1
+    GROUP BY a.id;
+
+    `;
+
+    const values   = [user_id];
+
+
+    try {
+        const activityRes  = await conn.query(sql, values);
+        const activity = activityRes.rows;
+        // console.log(activity)
         return activity;
 
 

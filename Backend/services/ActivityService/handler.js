@@ -1,8 +1,8 @@
 // handler.js 
 import express from "express";
 import { createActivity,
-    getActivity, 
-    getActivityById, 
+    getActivities, 
+    getJoinedActivities, 
     updateActivity, 
     deleteActivity,
     addMember,
@@ -36,7 +36,7 @@ router.post("/create", async (req, res) => {
 // get by user_id
 router.get("/user/:id", async (req, res) => {
     try {
-        const activities = await getActivity(req.params.id);
+        const activities = await getActivities(req.params.id);
         
         if (!activities || activities.length === 0) {
             return res.status(404).json({ error: "Activity not found" });
@@ -52,6 +52,28 @@ router.get("/user/:id", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 })
+
+
+// get by user_id กิจกรรมที่เข้าร่วม
+router.get("/user/join/:id", async (req, res) => {
+    try {
+        const activities = await getJoinedActivities(req.params.id);
+        
+        if (!activities || activities.length === 0) {
+            return res.status(404).json({ error: "Activity not found" });
+        }
+
+        
+        res.status(200).json({
+            message: "success",
+            data : activities
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
 
 
 // get by id
