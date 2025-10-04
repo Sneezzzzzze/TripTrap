@@ -18,7 +18,6 @@ export const createActivity = async (data) => {
         const {
             title,
             description,
-            date,
             userId,
             location,
             start_date,
@@ -28,7 +27,7 @@ export const createActivity = async (data) => {
         } = data;
 
         // เช้ค ข้อมูล
-        if(!title || !description || !date || !userId || !location || !start_date || !end_date || !budget || !wallet_id){
+        if(!title || !description || !userId || !location || !start_date || !end_date || !budget || !wallet_id){
             throw new Error("Please provide all required fields");
         }
 
@@ -42,12 +41,12 @@ export const createActivity = async (data) => {
         // สร้าง activity
         const sql = `
             INSERT INTO ${TABLE_NAME}
-            (name, description, date, start_date, end_date, location, budget, wallet_id, user_id, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+            (name, description,  start_date, end_date, location, budget, wallet_id, user_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
             RETURNING *;
         `;
 
-        const activityValues  = [title, description, date, start_date, end_date, location, budget, wallet_id, userId];
+        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId];
         const activityRes  = await conn.query(sql, activityValues);
         const activity = activityRes.rows[0];
         
@@ -73,7 +72,6 @@ export const getActivities = async (user_id) => {
         a.id AS activity_id,
         a.name,
         a.description,
-        a.date,
         a.start_date,
         a.end_date,
         a.location,
@@ -125,7 +123,6 @@ export const getJoinedActivities = async (user_id) => {
         a.id AS activity_id,
         a.name,
         a.description,
-        a.date,
         a.start_date,
         a.end_date,
         a.location,
@@ -179,7 +176,6 @@ export const getActivityById = async (id) => {
         a.id AS activity_id,
         a.name,
         a.description,
-        a.date,
         a.start_date,
         a.end_date,
         a.location,
@@ -240,7 +236,6 @@ export const updateActivity = async (id, data) => {
     const {
         title,
         description,
-        date,
         start_date,
         end_date,
         location,
