@@ -6,7 +6,8 @@ import { createActivity,
     updateActivity, 
     deleteActivity,
     addMember,
-    deleteMember
+    deleteMember,
+    getActivityById
 
 } from "./activityService.js";
 
