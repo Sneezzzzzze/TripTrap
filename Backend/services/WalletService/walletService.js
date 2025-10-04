@@ -137,7 +137,7 @@ export const updateWallet = async (id, data) => {
 
     } catch (error) {
         console.log("Error :", error)
-        throw new error(error.message)
+        throw new Error(error.message)
     }
 }
 
@@ -162,6 +162,6 @@ export const deleteWallet = async (id) => {
 
     } catch (error) {
         console.log("Error :", error)
-        throw new error(error.message)
+        throw new Error(error.message)
     }
 }

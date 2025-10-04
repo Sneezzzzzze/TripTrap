@@ -53,7 +53,7 @@ export const createPayment = async (data) => {
 
     } catch (error) {
         console.log("Error :", error);
-        throw new Error(err.message);
+        throw new Error(error.message);
     }
 }
 
@@ -78,6 +78,22 @@ export const getPaymentByActivityID = async (ActivityId) => {
     try {
         const sql = `SELECT * FROM ${TABLE_NAME} WHERE activity_id = $1`;
         const paymentRes  = await conn.query(sql, [ActivityId]);
+        const payments = paymentRes.rows;
+
+        return payments;
+    }
+    catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+// Get All Payments by activity_id and user_id
+export const getPaymentByActivityUserID = async (UserID, ActivityId) => {
+    console.log(UserID, ActivityId)
+    try {
+        const sql = `SELECT * FROM ${TABLE_NAME} WHERE activity_id = $1 AND user_id = $2`;
+        const paymentRes  = await conn.query(sql, [UserID, ActivityId]);
         const payments = paymentRes.rows;
 
         return payments;
@@ -115,9 +131,9 @@ export const updatePayment = async (id, data) => {
             UPDATE ${TABLE_NAME}
             SET 
                 amount = $1,
-                paidAt = $2,
-                slipUrl = $3,
-                note = $4
+                paid_at = $2,
+                slip_url = $3,
+                note = $4,
                 updated_at = NOW()
             WHERE id = $5
             RETURNING *;
@@ -128,9 +144,9 @@ export const updatePayment = async (id, data) => {
 
         return paymentRes;
 
-    } catch (error) {
-        console.log("Error :", error)
-        throw new error(error.message)
+    } catch (err) {
+        console.log("Error :", err)
+        throw new Error(err.message)
     }
 }
 

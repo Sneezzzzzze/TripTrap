@@ -1,10 +1,15 @@
 import express from "express";
-import { createPayment, getPaymentById, getPaymentByActivityID, updatePayment, deletePayment } from "./paymentService.js";
+import { createPayment, 
+    getPaymentById, 
+    getPaymentByActivityID, 
+    getPaymentByActivityUserID,
+    updatePayment, 
+    deletePayment } from "./paymentService.js";
 
 const router = express.Router();
 
 //create payment
-router.post("/payment", async (req, res) => {
+router.post("/", async (req, res) => {
     try {
         const payment = await createPayment(req.body);
 
@@ -44,7 +49,45 @@ router.get("/activity/:id", async (req, res) => {
     try {
         const payments = await getPaymentByActivityID(req.params.id);
 
-        if (!payments || payment.length === 0) {
+        if (!payments || payments.length === 0) {
+            return res.status(404).json({ error: "Payment not found" });
+        }
+
+         res.status(200).json({
+            message: "success",
+            data : payments
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
+//get payment by activity_id
+router.get("/activity/:id", async (req, res) => {
+    try {
+        const payments = await getPaymentByActivityID(req.params.id);
+
+        if (!payments || payments.length === 0) {
+            return res.status(404).json({ error: "Payment not found" });
+        }
+
+         res.status(200).json({
+            message: "success",
+            data : payments
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
+//get payment by activity_id and user_id
+router.get("/:user_id/:activity_id", async (req, res) => {
+    try {
+        const payments = await getPaymentByActivityUserID(req.params.user_id, req.params.activity_id);
+
+        if (!payments || payments.length === 0) {
             return res.status(404).json({ error: "Payment not found" });
         }
 

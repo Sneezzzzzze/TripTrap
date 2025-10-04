@@ -18,7 +18,6 @@ export const createActivity = async (data) => {
         const {
             title,
             description,
-            date,
             userId,
             location,
             start_date,
@@ -28,7 +27,7 @@ export const createActivity = async (data) => {
         } = data;
 
         // เช้ค ข้อมูล
-        if(!title || !description || !date || !userId || !location || !start_date || !end_date || !budget || !wallet_id){
+        if(!title || !description || !userId || !location || !start_date || !end_date || !budget || !wallet_id){
             throw new Error("Please provide all required fields");
         }
 
@@ -42,12 +41,12 @@ export const createActivity = async (data) => {
         // สร้าง activity
         const sql = `
             INSERT INTO ${TABLE_NAME}
-            (name, description, date, start_date, end_date, location, budget, wallet_id, user_id, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+            (name, description,  start_date, end_date, location, budget, wallet_id, user_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
             RETURNING *;
         `;
 
-        const activityValues  = [title, description, date, start_date, end_date, location, budget, wallet_id, userId];
+        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId];
         const activityRes  = await conn.query(sql, activityValues);
         const activity = activityRes.rows[0];
         
@@ -64,8 +63,8 @@ export const createActivity = async (data) => {
     
 }
 
-// Get Activity by User ID
-export const getActivity = async (user_id) => {
+// Get Activity by User ID กิจกรรมที่สร้าง
+export const getActivities = async (user_id) => {
 
     // หา activity
     const sql = `
@@ -73,7 +72,6 @@ export const getActivity = async (user_id) => {
         a.id AS activity_id,
         a.name,
         a.description,
-        a.date,
         a.start_date,
         a.end_date,
         a.location,
@@ -116,6 +114,58 @@ export const getActivity = async (user_id) => {
 }
 
 
+// Get Activity by User ID กิจกรรมที่เข้าร่วม
+export const getJoinedActivities = async (user_id) => {
+
+    // หา activity
+    const sql = `
+        SELECT 
+        a.id AS activity_id,
+        a.name,
+        a.description,
+        a.start_date,
+        a.end_date,
+        a.location,
+        a.budget,
+        a.wallet_id,
+        a.user_id AS creator_id,
+        json_agg(
+            json_build_object(
+                'member_id', m.id,
+                'user_id', m.user_id,
+                'username', u.username,
+                'fullname', u.first_name || ' ' || u.last_name,
+                'role', m.role
+            )
+        ) AS members
+    FROM activities a
+    LEFT JOIN activity_members m
+        ON a.id = m.activity_id
+    LEFT JOIN users u
+        ON u.id = m.user_id
+    WHERE m.user_id = $1
+    GROUP BY a.id;
+
+    `;
+
+    const values   = [user_id];
+
+
+    try {
+        const activityRes  = await conn.query(sql, values);
+        const activity = activityRes.rows;
+        // console.log(activity)
+        return activity;
+
+
+
+    } catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+
 
 // Get Activity by ID
 export const getActivityById = async (id) => {
@@ -126,7 +176,6 @@ export const getActivityById = async (id) => {
         a.id AS activity_id,
         a.name,
         a.description,
-        a.date,
         a.start_date,
         a.end_date,
         a.location,
@@ -187,7 +236,6 @@ export const updateActivity = async (id, data) => {
     const {
         title,
         description,
-        date,
         start_date,
         end_date,
         location,
