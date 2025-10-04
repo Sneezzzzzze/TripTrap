@@ -13,12 +13,12 @@ export const conn = new Pool({
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    // ssl: {
+    //     rejectUnauthorized: false
+    // }
 });
 
-// ฟังก์ชัน query 
+// ฟังก์ชัน query รับ sql และ parameter มาจากไฟล์ service ต่างๆอีกที
 export async function query(sql, params) {
 
   const res = await conn.query(sql, params);
@@ -26,6 +26,7 @@ export async function query(sql, params) {
 
 }
 
+// เช็คการเชื่อมต่อ
 async function testConn() {
   try {
     const res = await conn.query("SELECT NOW()");

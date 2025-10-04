@@ -1,70 +1,84 @@
+// /ActivityService.js
+import { ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
+// import { 
+//     rdsDataClient, 
+//     dbConfig,         // ดึง Config มาใช้
+//     getFieldValue 
+// } from 'rds_service.js';
+import { conn } from "../../utils/db.js";
+
+const TABLE_NAME = "payments";
+
 //Create Payment
 export const createPayment = async (data) => {
+
+    //data
+    const{
+        userId, //Slip's Owner
+        activityId,
+        amount,
+        paidAt,
+        slipUrl,
+        note
+    } = data;
+
     try {
 
-        //data
-        userId = data.userId;
-        activityId = data.activityId;
-        amount = data.amount;
-        paidAt = data.paidAt;
-        slipUrl = data.slipUrl;
-
         //check data
-        if (!userId, !activityId, !amount, !paidAt, !slipUrl) {
-            throw new Error("Please provide all required fields.")
+        if (!userId, !activityId, !amount, !paidAt, !slipUrl, !note) {
+            throw new Error("Please provide all required fields.");
         }
 
         // check user
-        const user = await User.findById(userId);
+        const checkSql = `SELECT * FROM users WHERE id = $1`
+        const checkRes = await conn.query(checkSql, [userId]);
 
-        if (!user) {
+        if (!checkRes.rows) {
             throw new Error("User not found.");
         }
 
-        //create payment
-        const createdPayment = await Payment.create({
-            userId : data.userId,
-            activityId : data.activityId,
-            amount : data.amount,
-            paidAt : data.paidAt,
-            slipUrl : data.slipUrl
-        })
+        //insert payment
+        const sql = `
+                INSERT INTO ${TABLE_NAME}
+                (user_id, activity_id, amount, paid_at, slip_url, note, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                RETURNING *;
+                `;
 
-        if (!createdPayment) {
-            throw new Error("Failed to create Payment.")
-        }
+        const paymentValues = [userId, activityId, amount, paidAt, slipUrl, note];
+        const paymentRes = await conn.query(sql, paymentValues);
+        const payment = paymentRes.rows[0];
 
-        return createdPayment;
+        return payment;
 
-    } catch (err) {
-        console.log("Error :", err);
+    } catch (error) {
+        console.log("Error :", error);
         throw new Error(err.message);
     }
 }
 
-//Get Payment By Id
+//Get Payment By id
 export const getPaymentById = async (id) => {
+    
     try {
-        const payment = await Payment.findById(id);
+        const sql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
+        const paymentRes  = await conn.query(sql, [id]);
+        const payment = paymentRes.rows;
 
-        if (!payment) {
-            throw new Error("Payment not found");
-        }
         return payment;
+
     } catch (error) {
         console.log("Error :", error);
         throw new Error(error.message);
     }
 }
 
-// Get All Payments
-export const getPayment = async () => {
+// Get All Payments by activity_id
+export const getPaymentByActivityID = async (ActivityId) => {
     try {
-        const payments = await Payment.findAll();
-
-        if (!payments) {
-            throw new Error("No payment created.")
-        }
+        const sql = `SELECT * FROM ${TABLE_NAME} WHERE activity_id = $1`;
+        const paymentRes  = await conn.query(sql, [ActivityId]);
+        const payments = paymentRes.rows;
 
         return payments;
     }
@@ -77,24 +91,42 @@ export const getPayment = async () => {
 
 // Update Payment
 export const updatePayment = async (id, data) => {
+
+    //data
+    const{
+        amount,
+        paidAt,
+        slipUrl,
+        note
+    } = data;
+
     try {
         // find payment
-        const payment = await Payment.findById(id);
+        const checksql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
+        const checkRes  = await conn.query(checksql, [id]);
+        const checkPayment = checkRes.rows;
 
-        if (!payment) {
-            throw new Error("Payment not found.");
+        if (!checkPayment) {
+            return [];
         }
 
         // update payment
-        const updatedPayment = await Payment.findByIdandUpdate(
-            id, data, {new : true}
-        );
+        const sql = `
+            UPDATE ${TABLE_NAME}
+            SET 
+                amount = $1,
+                paidAt = $2,
+                slipUrl = $3,
+                note = $4
+                updated_at = NOW()
+            WHERE id = $5
+            RETURNING *;
+        `;
 
-        if (!updatedPayment) {
-            throw new Error("Failed to update activity.")
-        }
+        const paymentValues = [amount, paidAt, slipUrl, note, id];
+        const paymentRes = await conn.query(sql, paymentValues);
 
-        return { message: "Payment updated successfully" };
+        return paymentRes;
 
     } catch (error) {
         console.log("Error :", error)
@@ -105,17 +137,20 @@ export const updatePayment = async (id, data) => {
 // Delete Payment
 export const deletePayment = async (id) => {
     try {
-        // find payment
-        const payment = await Payment.findById(id);
+        // checl payment
+        const checksql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
+        const checkRes = await conn.query(checksql, [id]);
+        const checkPayment = checkRes.rows;
 
-        if (!payment) {
-            throw new Error("Payment not found.");
+        if (!checkPayment) {
+            return [];
         }
 
-        // update payment
-        await Payment.findByIdandDelete(id);
+        // Delete payment
+        const sql = `DELETE FROM ${TABLE_NAME} WHERE id = $1 RETURNING *`;
+        const res = await conn.query(sql, [id]);
 
-        return { message: "Payment deleted successfully" };
+        return res;
 
     } catch (error) {
         console.log("Error :", error)
