@@ -92,7 +92,7 @@ export const getPaymentByActivityID = async (ActivityId) => {
 export const getPaymentByActivityUserID = async (UserID, ActivityId) => {
     console.log(UserID, ActivityId)
     try {
-        const sql = `SELECT * FROM ${TABLE_NAME} WHERE activity_id = $1 AND user_id = $2`;
+        const sql = `SELECT * FROM ${TABLE_NAME} WHERE user_id = $1 AND activity_id = $2`;
         const paymentRes  = await conn.query(sql, [UserID, ActivityId]);
         const payments = paymentRes.rows;
 
@@ -122,7 +122,7 @@ export const updatePayment = async (id, data) => {
         const checkRes  = await conn.query(checksql, [id]);
         const checkPayment = checkRes.rows;
 
-        if (!checkPayment) {
+        if (checkPayment.length === 0) {
             return [];
         }
 
@@ -158,7 +158,7 @@ export const deletePayment = async (id) => {
         const checkRes = await conn.query(checksql, [id]);
         const checkPayment = checkRes.rows;
 
-        if (!checkPayment) {
+        if (checkPayment.length === 0) {
             return [];
         }
 

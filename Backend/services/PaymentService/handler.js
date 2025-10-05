@@ -83,7 +83,7 @@ router.get("/activity/:id", async (req, res) => {
 })
 
 //get payment by activity_id and user_id
-router.get("/:user_id/:activity_id", async (req, res) => {
+router.get("/user/:user_id/activity/:activity_id", async (req, res) => {
     try {
         const payments = await getPaymentByActivityUserID(req.params.user_id, req.params.activity_id);
 
