@@ -9,8 +9,12 @@ export default function Activities() {
       <div className="w-full h-64 text-center" style={{ backgroundImage: "url('/media/background.png')" }}>
         <h1 className="text-white text-7xl">TRIP TRAP</h1>
       </div>
+      <div className="px-2 pt-4 pb-6">
+        <h1 className="font-semibold">กิจกรรมที่สร้าง</h1>
+        <ActivityCards />
+      </div>
       <div className="px-2 pt-4 pb-26">
-        <h1 className="font-semibold">กิจกรรมทั้งหมด</h1>
+        <h1 className="font-semibold">กิจกรรมที่เข้าร่วม</h1>
         <ActivityCards />
       </div>
     </div>

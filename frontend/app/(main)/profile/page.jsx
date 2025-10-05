@@ -7,7 +7,7 @@ export default function Profile() {
     <div className="bg-blue-200 h-[100vh]">
       <div className="pt-6 w-full text-center font-semibold">
         <p>โปรไฟล์</p>
-        <a href="/">
+        <a href="/profile/edit">
           <img src="/media/Edit.svg" alt="" className="relative bottom-7 mr-3 justify-self-end" />
         </a>
       </div>
