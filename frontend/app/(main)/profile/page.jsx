@@ -2,7 +2,7 @@ import ProfileCard from "@/app/components/ProfileCard";
 import ProfileName from "@/app/components/ProfileName";
 import ActivityCards from "@/app/components/ActivityCards";
 
-export default function Profile() {
+export default function ProfilePage() {
   return (
     <div className="bg-blue-200 h-[100vh]">
       <div className="pt-6 w-full text-center font-semibold">

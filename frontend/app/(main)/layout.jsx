@@ -6,7 +6,7 @@ export default function MainLayout({ children }) {
   const pathname = usePathname();
 
   // ซ่อน Navbar
-  const hideNavbar = pathname === "/" || pathname === "/profile/edit";
+  const hideNavbar = pathname === "/" || pathname === "/profile/edit" || pathname === "/activities/create";
   return (
     <div>
         {children}

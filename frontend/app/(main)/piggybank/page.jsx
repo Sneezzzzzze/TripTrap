@@ -1,4 +1,4 @@
-export default function PiggyBank() {
+export default function PiggyBankPage() {
   return (
     <div>
       <h1>piggybank page</h1>
