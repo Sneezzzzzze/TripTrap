@@ -1,15 +1,29 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react'; // optional modern icon
 
 export default function CreateActivityBtn() {
-    const router = useRouter();
-    const pathname = usePathname();
+  const router = useRouter();
 
-    return (
-        <div className="justify-self-end bg-[#4D616B] text-white rounded-full p-[2px] px-3 mr-4 text-4xl bottom-22 z-50 fixed">
-            <a onClick={() => router.push("/activities/create")}>+</a>
-        </div>
-    );
-};
+  return (
+    <button
+      onClick={() => router.push('/activities/create')}
+      className="
+        fixed bottom-25 right-5 z-50 
+        flex items-center justify-center 
+        w-14 h-14 sm:w-16 sm:h-16
+        rounded-full 
+        bg-gradient-to-br bg-[#106681]
+        shadow-lg shadow-indigo-300/50
+        hover:scale-110 active:scale-95
+        transition-all duration-300 ease-out
+        text-white font-bold text-3xl
+      "
+    >
+      {/* You can replace with a + if you prefer text */}
+      <Plus className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={3} />
+    </button>
+  );
+}

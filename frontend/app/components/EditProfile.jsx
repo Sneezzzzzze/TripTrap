@@ -1,36 +1,84 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import DragDropImageBox from './DragDropImageBox';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function EditProfile() {
-    const router = useRouter();
-    const pathname = usePathname();
+  const router = useRouter();
 
-    return (
-        <>
-            <div className="m-6">
-                <h1 className="font-semibold mb-2">username</h1>
-                <input type="text" placeholder='username' className='border rounded-2xl py-2 px-3 font-medium w-full mb-2' />
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                        <h1 className="font-semibold mb-2">ชื่อ</h1>
-                        <input type="text" placeholder='ชื่อ' className='border rounded-2xl py-2 px-3 font-medium w-full' />
-                    </div>
-                    <div>
-                        <h1 className="font-semibold mb-2">นามสกุล</h1>
-                        <input type="text" placeholder='นามสกุล' className='border rounded-2xl py-2 px-3 font-medium w-full' />
-                    </div>
-                </div>
-                <h1 className="font-semibold mb-2">email</h1>
-                <input type="text" placeholder='email' className='border rounded-2xl py-2 px-3 font-medium w-full mb-2' />
-                <h1 className="font-semibold mb-2">password</h1>
-                <input type="text" placeholder='password' className='border rounded-2xl py-2 px-3 font-medium w-full mb-2' />
-            </div>
-            <div className='fixed bottom-0 w-full h-[78px] bg-blue-100 border-t-1 z-40 p-4'>
-                <button className="w-full p-2 border-black border-1 rounded-2xl bg-blue-400 text-white active:scale-95">บันทึก</button>
-            </div>
-        </>
-    );
-};
+  return (
+    <>
+      <div className="px-6 pb-28 space-y-4">
+        {/* Username */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            placeholder="BessKanisorn"
+            className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none"
+          />
+        </div>
+
+        {/* First & Last Name */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              ชื่อ
+            </label>
+            <input
+              type="text"
+              placeholder="ชื่อ"
+              className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              นามสกุล
+            </label>
+            <input
+              type="text"
+              placeholder="นามสกุล"
+              className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="bess@example.com"
+            className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none"
+          />
+        </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Floating Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-6 py-4 bg-white/80 backdrop-blur-md border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <button
+          onClick={() => router.push('/profile')}
+          className="w-full py-3 rounded-xl bg-gradient-to-r bg-blue-600 text-white font-semibold text-lg shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-300"
+        >
+          บันทึก
+        </button>
+      </div>
+    </>
+  );
+}
