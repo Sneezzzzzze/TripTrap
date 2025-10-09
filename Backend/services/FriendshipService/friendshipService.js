@@ -64,11 +64,25 @@ export const createFriendship = async (data) => {
 export const getAllFriends = async (userId) => {
     try {
         const sql = `
-            SELECT *
-            FROM ${TABLE_NAME}
-            WHERE status = 'Accepted' 
-              AND (requester_id = $1 OR receiver_id = $1)
+            SELECT 
+                f.id AS friendship_id,
+                f.status,
+                f.created_at,
+                u.id AS friend_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM ${TABLE_NAME} f
+            JOIN users u 
+              ON u.id = CASE 
+                          WHEN f.requester_id = $1 THEN f.receiver_id
+                          ELSE f.requester_id
+                        END
+            WHERE f.status = 'Accepted' 
+              AND (f.requester_id = $1 OR f.receiver_id = $1)
         `;
+
         const result = await conn.query(sql, [userId]);
 
         return result.rows;
@@ -84,10 +98,19 @@ export const getSentRequests = async (userId) => {
         if (!userId) throw new Error("Please provide userId");
 
         const sql = `
-            SELECT *
-            FROM ${TABLE_NAME}
-            WHERE requester_id = $1
-              AND status = 'Pending'
+            SELECT 
+                f.id AS friendship_id,
+                f.status,
+                f.created_at,
+                u.id AS friend_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM ${TABLE_NAME} f
+            JOIN users u ON u.id = f.receiver_id
+            WHERE f.requester_id = $1
+              AND f.status = 'Pending'
         `;
         const result = await conn.query(sql, [userId]);
 
@@ -108,10 +131,19 @@ export const getReceivedRequests = async (userId) => {
         if (!userId) throw new Error("Please provide userId");
 
         const sql = `
-            SELECT *
-            FROM ${TABLE_NAME}
-            WHERE receiver_id = $1
-              AND status = 'Pending'
+            SELECT 
+                f.id AS friendship_id,
+                f.status,
+                f.created_at,
+                u.id AS friend_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM ${TABLE_NAME} f
+            JOIN users u ON u.id = f.requester_id
+            WHERE f.receiver_id = $1
+              AND f.status = 'Pending'
         `;
         const result = await conn.query(sql, [userId]);
 

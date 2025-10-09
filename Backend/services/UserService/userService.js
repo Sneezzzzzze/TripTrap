@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import { conn } from "../../utils/db.js";
 
 const TABLE_NAME = "users";
+
+// register user
 export const createUser = async (data) => {
     try {
         const { username, first_name, last_name, email, password } = data;
@@ -30,13 +32,7 @@ export const createUser = async (data) => {
           VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
           RETURNING *;
         `;
-        const values = [
-            username,
-            first_name,
-            last_name,
-            email,
-            hashedPassword,
-        ];
+        const values = [username, first_name, last_name, email, hashedPassword];
         const result = await conn.query(sql, values);
 
         if (!result.rows[0]) {
@@ -53,7 +49,7 @@ export const createUser = async (data) => {
 export const getAllUsers = async () => {
     try {
         const sql = `SELECT id, username, first_name, last_name, email, created_at, updated_at 
-                      FROM users`;
+                      FROM ${TABLE_NAME}`;
         const result = await conn.query(sql);
 
         // if (result.rows.length === 0) {
@@ -70,7 +66,7 @@ export const getAllUsers = async () => {
 export const getUserById = async (id) => {
     try {
         const sql = `SELECT id, username, first_name, last_name, email, created_at, updated_at 
-                      FROM users 
+                      FROM ${TABLE_NAME} 
                       WHERE id = $1`;
         const result = await conn.query(sql, [id]);
 
@@ -88,7 +84,7 @@ export const getUserById = async (id) => {
 export const updateUser = async (id, data) => {
     const { username, first_name, last_name, email, password } = data;
     try {
-        const checkSql = `SELECT * FROM users WHERE id = $1`;
+        const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
         const checkRes = await conn.query(checkSql, [id]);
 
         if (!checkRes.rows[0]) {
@@ -111,7 +107,6 @@ export const updateUser = async (id, data) => {
             throw new Error("Username or Email already exists.");
         }
 
-
         // hash password if provided
         let hashedPassword = null;
         if (password) {
@@ -119,7 +114,7 @@ export const updateUser = async (id, data) => {
         }
 
         const sql = `
-            UPDATE users
+            UPDATE ${TABLE_NAME}
             SET 
                 username = COALESCE($1, username),
                 first_name = COALESCE($2, first_name),
@@ -155,14 +150,14 @@ export const updateUser = async (id, data) => {
 
 export const deleteUser = async (id) => {
     try {
-        const checkSql = `SELECT * FROM users WHERE id = $1`;
+        const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
         const checkRes = await conn.query(checkSql, [id]);
 
         if (!checkRes.rows[0]) {
             throw new Error("User not found.");
         }
 
-        const sql = `DELETE FROM users WHERE id = $1 RETURNING id`;
+        const sql = `DELETE FROM ${TABLE_NAME} WHERE id = $1 RETURNING id`;
         const result = await conn.query(sql, [id]);
 
         if (!result.rows[0]) {
