@@ -98,10 +98,19 @@ export const getSentRequests = async (userId) => {
         if (!userId) throw new Error("Please provide userId");
 
         const sql = `
-            SELECT *
-            FROM ${TABLE_NAME}
-            WHERE requester_id = $1
-              AND status = 'Pending'
+            SELECT 
+                f.id AS friendship_id,
+                f.status,
+                f.created_at,
+                u.id AS friend_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM ${TABLE_NAME} f
+            JOIN users u ON u.id = f.receiver_id
+            WHERE f.requester_id = $1
+              AND f.status = 'Pending'
         `;
         const result = await conn.query(sql, [userId]);
 
@@ -122,10 +131,19 @@ export const getReceivedRequests = async (userId) => {
         if (!userId) throw new Error("Please provide userId");
 
         const sql = `
-            SELECT *
-            FROM ${TABLE_NAME}
-            WHERE receiver_id = $1
-              AND status = 'Pending'
+            SELECT 
+                f.id AS friendship_id,
+                f.status,
+                f.created_at,
+                u.id AS friend_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM ${TABLE_NAME} f
+            JOIN users u ON u.id = f.requester_id
+            WHERE f.receiver_id = $1
+              AND f.status = 'Pending'
         `;
         const result = await conn.query(sql, [userId]);
 
