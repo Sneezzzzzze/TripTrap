@@ -26,6 +26,7 @@ router.post("/", async (req, res) => {
 })
 
 //get payment by id
+// NOT IN PRODUCION
 router.get("/:id", async (req, res) => {
     try {
         const payment = await getPaymentById(req.params.id);
@@ -83,6 +84,7 @@ router.get("/activity/:id", async (req, res) => {
 })
 
 //get payment by activity_id and user_id
+// NOT IN PRODUCION
 router.get("/user/:user_id/activity/:activity_id", async (req, res) => {
     try {
         const payments = await getPaymentByActivityUserID(req.params.user_id, req.params.activity_id);
@@ -103,6 +105,7 @@ router.get("/user/:user_id/activity/:activity_id", async (req, res) => {
 
 
 // update payment
+// NOT IN PRODUCION
 router.put("/:id", async (req, res) => {
     try {
         const result = await updatePayment(req.params.id, req.body);
