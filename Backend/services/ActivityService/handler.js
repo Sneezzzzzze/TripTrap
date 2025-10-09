@@ -10,14 +10,16 @@ import { createActivity,
     getActivityById
 
 } from "./activityService.js";
+import multer from "multer";
 
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // สร้างกิจกรรม
-router.post("/create", async (req, res) => {
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const activity = await createActivity(req.body);
+    const activity = await createActivity(req.body, req.file);
 
     if(activity){
         res.status(201).json({

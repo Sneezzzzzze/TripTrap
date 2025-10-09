@@ -1,16 +1,18 @@
 // /ActivityService.js
-import { ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
-// import { 
-//     rdsDataClient, 
-//     dbConfig,         // ดึง Config มาใช้
-//     getFieldValue 
-// } from 'rds_service.js';
 import { conn } from "../../utils/db.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../../utils/s3.js";
+
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const TABLE_NAME = "activities";
 
+
+
 // Create Activity
-export const createActivity = async (data) => {
+export const createActivity = async (data, file) => {
 
     try {
         
@@ -38,15 +40,37 @@ export const createActivity = async (data) => {
         //     throw new Error("Wallet not found");
         // }
 
+        let imagePath = null;
+
+        if (file) {
+
+            const fileName = Date.now() + "_" + file.originalname;
+            const s3Path = `image/${fileName}`;
+
+            // console.log("file.buffer", file.buffer)
+            // console.log("file.mimetype", file.mimetype)
+
+            await s3.send(
+                new PutObjectCommand({
+                    Bucket: process.env.AWS_S3_BUCKET,
+                    Key: s3Path,
+                    Body: file.buffer,
+                    ContentType: file.mimetype,
+                })
+            );
+
+            imagePath = `/${s3Path}`;
+        }
+
         // สร้าง activity
         const sql = `
             INSERT INTO ${TABLE_NAME}
-            (name, description,  start_date, end_date, location, budget, wallet_id, user_id, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+            (name, description,  start_date, end_date, location, budget, wallet_id, user_id, image, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,NOW(),NOW())
             RETURNING *;
         `;
 
-        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId];
+        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId, imagePath];
         const activityRes  = await conn.query(sql, activityValues);
         const activity = activityRes.rows[0];
         
@@ -77,15 +101,20 @@ export const getActivities = async (user_id) => {
         a.location,
         a.budget,
         a.wallet_id,
+        a.image,
         a.user_id AS creator_id,
-        json_agg(
-            json_build_object(
-                'activity_members', m.id,
-                'user_id', m.user_id,
-                'username', u.username,
-                'fullname', u.first_name || ' ' || u.last_name,
-                'role', m.role
-            )
+        COALESCE(
+            json_agg(
+                json_build_object(
+                    'activity_members', m.activity_id,  -- แทน m.id
+                    'user_id', m.user_id,
+                    'username', u.username,
+                    'fullname', u.first_name || ' ' || u.last_name,
+                    'role', m.role
+                )
+                ORDER BY m.user_id
+            ) FILTER (WHERE m.user_id IS NOT NULL),
+            '[]'
         ) AS members
     FROM activities a
     LEFT JOIN activity_members m
@@ -128,15 +157,20 @@ export const getJoinedActivities = async (user_id) => {
         a.location,
         a.budget,
         a.wallet_id,
+        a.image,
         a.user_id AS creator_id,
-        json_agg(
-            json_build_object(
-                'member_id', m.id,
-                'user_id', m.user_id,
-                'username', u.username,
-                'fullname', u.first_name || ' ' || u.last_name,
-                'role', m.role
-            )
+        COALESCE(
+            json_agg(
+                json_build_object(
+                    'activity_members', m.activity_id,  -- แทน m.id
+                    'user_id', m.user_id,
+                    'username', u.username,
+                    'fullname', u.first_name || ' ' || u.last_name,
+                    'role', m.role
+                )
+                ORDER BY m.user_id
+            ) FILTER (WHERE m.user_id IS NOT NULL),
+            '[]' 
         ) AS members
     FROM activities a
     LEFT JOIN activity_members m
@@ -181,15 +215,20 @@ export const getActivityById = async (id) => {
         a.location,
         a.budget,
         a.wallet_id,
+        a.image,
         a.user_id AS creator_id,
-        json_agg(
-            json_build_object(
-                'activity_members', m.id,
-                'user_id', m.user_id,
-                'username', u.username,
-                'fullname', u.first_name || ' ' || u.last_name,
-                'role', m.role
-            )
+        COALESCE(
+            json_agg(
+                json_build_object(
+                    'activity_members', m.activity_id,  -- แทน m.id
+                    'user_id', m.user_id,
+                    'username', u.username,
+                    'fullname', u.first_name || ' ' || u.last_name,
+                    'role', m.role
+                )
+                ORDER BY m.user_id
+            ) FILTER (WHERE m.user_id IS NOT NULL),
+            '[]'  
         ) AS members
     FROM activities a
     LEFT JOIN activity_members m
