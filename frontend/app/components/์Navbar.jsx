@@ -42,7 +42,7 @@ export default function Navbar() {
         <div className='fixed bottom-0 w-full bg-blue-100 border-t-1 z-40'>
             <nav className="flex justify-around py-3 text-sm px-[10px]">
                 <NavButton href="/friends" iconName="group" label="เพื่อน" />
-                <NavButton href="/activities" iconName="Calendar" label="กิจกรรม" />
+                <NavButton href="/activities" iconName="calendar" label="กิจกรรม" />
                 <NavButton href="/piggybank" iconName="piggybank" label="กระปุกหมู" />
                 <NavButton href="/wallet" iconName="wallet" label="กระเป๋าตังค์" />
                 <NavButton href="/profile" iconName="profile" label="โปรไฟล์" />
