@@ -10,7 +10,7 @@ import { createActivity,
     getActivityById
 
 } from "./activityService.js";
-import multer from "multer";
+import multer from "multer"; //upload file from frontend
 
 
 const router = express.Router();

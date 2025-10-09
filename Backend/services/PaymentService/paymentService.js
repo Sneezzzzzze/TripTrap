@@ -1,16 +1,34 @@
 // /ActivityService.js
-import { ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
-// import { 
-//     rdsDataClient, 
-//     dbConfig,         // ดึง Config มาใช้
-//     getFieldValue 
-// } from 'rds_service.js';
+
 import { conn } from "../../utils/db.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../../utils/s3.js";
+
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const TABLE_NAME = "payments";
 
+
+// upload ไฟล์ใหม่
+const uploadToS3 = async (file) => {
+    const fileName = Date.now() + "_" + file.originalname;
+    const s3Path = `image/${fileName}`;
+
+    await s3.send(new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: s3Path,
+        Body: file.buffer,
+        ContentType: file.mimetype
+    }));
+
+    return `/${s3Path}`;
+};
+
+
 //Create Payment
-export const createPayment = async (data) => {
+export const createPayment = async (data, file) => {
 
     //data
     const{
@@ -18,15 +36,20 @@ export const createPayment = async (data) => {
         activityId,
         amount,
         paidAt,
-        slipUrl,
         note
     } = data;
 
     try {
-
+        
         //check data
-        if (!userId, !activityId, !amount, !paidAt, !slipUrl, !note) {
+        if (!userId, !activityId, !amount, !paidAt, !note) {
             throw new Error("Please provide all required fields.");
+        }
+
+        let imagePath = null;
+
+        if (file) {
+            imagePath = await uploadToS3(file); // upload ใหม่
         }
 
         // check user
@@ -45,7 +68,7 @@ export const createPayment = async (data) => {
                 RETURNING *;
                 `;
 
-        const paymentValues = [userId, activityId, amount, paidAt, slipUrl, note];
+        const paymentValues = [userId, activityId, amount, paidAt, imagePath, note];
         const paymentRes = await conn.query(sql, paymentValues);
         const payment = paymentRes.rows[0];
 
@@ -90,13 +113,34 @@ export const getPaymentByActivityID = async (ActivityId) => {
 
 // Get All Payments by activity_id and user_id
 export const getPaymentByActivityUserID = async (UserID, ActivityId) => {
-    console.log(UserID, ActivityId)
     try {
         const sql = `SELECT * FROM ${TABLE_NAME} WHERE user_id = $1 AND activity_id = $2`;
         const paymentRes  = await conn.query(sql, [UserID, ActivityId]);
         const payments = paymentRes.rows;
 
         return payments;
+    }
+    catch (error) {
+        console.log("Error :", error);
+        throw new Error(error.message);
+    }
+}
+
+
+// Calculate Paid Money Of 1 Activity 
+export const calculateMoney = async ( ActivityId) => {
+    try {
+        const sql = `SELECT SUM(amount) FROM ${TABLE_NAME} WHERE activity_id = $1`;
+        const sumPaymentRes  = await conn.query(sql, [ActivityId]);
+        const sumPayments = sumPaymentRes.rows;
+
+        console.log(sumPayments)
+
+        const result = sumPayments[0].sum
+
+        console.log(sumPayments[0].sum)
+
+        return result;
     }
     catch (error) {
         console.log("Error :", error);

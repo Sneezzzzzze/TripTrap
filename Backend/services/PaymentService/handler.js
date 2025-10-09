@@ -4,14 +4,18 @@ import { createPayment,
     getPaymentByActivityID, 
     getPaymentByActivityUserID,
     updatePayment, 
-    deletePayment } from "./paymentService.js";
+    deletePayment, 
+    calculateMoney } from "./paymentService.js";
 
+
+import multer from "multer"; //upload file from frontend
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 //create payment
-router.post("/", async (req, res) => {
+router.post("/", upload.single("slipUrl"),async (req, res) => {
     try {
-        const payment = await createPayment(req.body);
+        const payment = await createPayment(req.body, req.file);
 
         if(payment){
             res.status(201).json({
@@ -103,6 +107,23 @@ router.get("/user/:user_id/activity/:activity_id", async (req, res) => {
     }
 })
 
+router.get("/total_money/activity/:id", async (req, res) => {
+    try {
+        const payments = await calculateMoney(req.params.id);
+
+        if (!payments || payments.length === 0) {
+            return res.status(404).json({ error: "Payment not found" });
+        }
+
+         res.status(200).json({
+            message: "success",
+            data : payments
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
 
 // update payment
 // NOT IN PRODUCION
