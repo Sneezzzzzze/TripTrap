@@ -99,9 +99,9 @@ router.get("/:id", async (req, res) => {
 
 
 // update
-router.put("/:id", async (req, res) => {
+router.put("/:id", upload.single("image"), async (req, res) => {
     try {
-        const result = await updateActivity(req.params.id, req.body);
+        const result = await updateActivity(req.params.id, req.body, req.file);
         
         if (!result || result.length === 0){
              return res.status(404).json({ error: "Activity not found" });

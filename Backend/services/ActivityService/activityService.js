@@ -1,6 +1,6 @@
 // /ActivityService.js
 import { conn } from "../../utils/db.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "../../utils/s3.js";
 
 
@@ -8,6 +8,37 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const TABLE_NAME = "activities";
+
+
+// ลบไฟล์เก่า
+const deleteFromS3 = async (key) => {
+
+  if (!key) return;
+
+    await s3.send(
+        new DeleteObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key.replace(/^\//, ""), // เอา / หน้า key ออก
+        })
+    );
+
+};
+
+
+// upload ไฟล์ใหม่
+const uploadToS3 = async (file) => {
+    const fileName = Date.now() + "_" + file.originalname;
+    const s3Path = `image/${fileName}`;
+
+    await s3.send(new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: s3Path,
+        Body: file.buffer,
+        ContentType: file.mimetype
+    }));
+
+    return `/${s3Path}`;
+};
 
 
 
@@ -43,23 +74,7 @@ export const createActivity = async (data, file) => {
         let imagePath = null;
 
         if (file) {
-
-            const fileName = Date.now() + "_" + file.originalname;
-            const s3Path = `image/${fileName}`;
-
-            // console.log("file.buffer", file.buffer)
-            // console.log("file.mimetype", file.mimetype)
-
-            await s3.send(
-                new PutObjectCommand({
-                    Bucket: process.env.AWS_S3_BUCKET,
-                    Key: s3Path,
-                    Body: file.buffer,
-                    ContentType: file.mimetype,
-                })
-            );
-
-            imagePath = `/${s3Path}`;
+            imagePath = await uploadToS3(file); // upload ใหม่
         }
 
         // สร้าง activity
@@ -270,7 +285,7 @@ export const getActivityById = async (id) => {
 
 
 // Update Activity
-export const updateActivity = async (id, data) => {
+export const updateActivity = async (id, data, file) => {
     
     const {
         title,
@@ -293,6 +308,20 @@ export const updateActivity = async (id, data) => {
         }
 
 
+        // ถ้ามีไฟล์รูป ลบไฟล์เก่าแล้ว upload ใหม่
+        let imagePath = checkRes.rows[0].image;
+
+        if (file) {
+            if (imagePath) {
+                await deleteFromS3(imagePath); // ลบไฟล์เก่า
+            }
+
+            imagePath = await uploadToS3(file); // upload ใหม่
+        }
+
+       
+
+
 
         // อัพเดต activity
         const sql = `
@@ -300,17 +329,17 @@ export const updateActivity = async (id, data) => {
             SET 
                 name = $1,
                 description = $2,
-                date = $3,
-                start_date = $4,
-                end_date = $5,
-                location = $6,
-                budget = $7,
-                wallet_id = $8,
+                start_date = $3,
+                end_date = $4,
+                location = $5,
+                budget = $6,
+                wallet_id = $7,
+                image = $8,
                 updated_at = NOW()
             WHERE id = $9
             RETURNING *;
         `;
-        const values = [title, description, date, start_date, end_date, location, budget, wallet_id, id];
+        const values = [title, description, start_date, end_date, location, budget, wallet_id,imagePath, id];
         const res = await conn.query(sql, values);
         return res;
 
