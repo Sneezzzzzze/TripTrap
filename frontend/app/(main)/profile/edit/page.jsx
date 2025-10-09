@@ -25,7 +25,7 @@ export default function EditProfilePage() {
             className="w-full h-full rounded-full object-cover"
           />
           <label className="absolute bottom-1 right-1 bg-blue-500 hover:bg-blue-600 p-2 rounded-full shadow-md cursor-pointer transition">
-            <img src="/media/Camera.svg" alt="camera" className="w-4 h-4" />
+            <img src="/media/camera.svg" alt="camera" className="w-4 h-4" />
             <input type="file" className="hidden" />
           </label>
         </div>

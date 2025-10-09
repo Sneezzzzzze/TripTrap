@@ -32,7 +32,7 @@ export default function AddFriendPage() {
             placeholder="🔍 ค้นหาเพื่อน..."
             className="flex-1 rounded-l-xl border border-gray-300 bg-white/80 px-4 py-2 text-gray-700 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-400 outline-none transition"
           />
-          <button className="bg-blue-500 text-white px-5 rounded-r-xl hover:bg-blue-600 active:scale-[0.97] transition">
+          <button className="bg-[#106681] text-white px-5 rounded-r-xl active:scale-[0.97] transition">
             ค้นหา
           </button>
         </div>

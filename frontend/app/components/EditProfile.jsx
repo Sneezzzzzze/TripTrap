@@ -74,7 +74,7 @@ export default function EditProfile() {
       <div className="fixed bottom-0 left-0 right-0 z-40 px-6 py-4 bg-white/80 backdrop-blur-md border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => router.push('/profile')}
-          className="w-full py-3 rounded-xl bg-gradient-to-r bg-blue-600 text-white font-semibold text-lg shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-300"
+          className="w-full py-3 rounded-xl bg-gradient-to-r bg-[#106681] text-white font-semibold text-lg shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-300"
         >
           บันทึก
         </button>
