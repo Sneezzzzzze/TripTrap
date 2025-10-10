@@ -1,19 +1,19 @@
 import express from "express";
 import {
     createUser,
-    getAllUsers,
     getUserById,
     updateUser,
     deleteUser,
     login,
-    changePassword
+    changePassword,
+    searchUsers,
 } from "./userService.js";
 import multer from "multer";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post("/", async (req, res) => {
+router.post("/register", async (req, res) => {
     try {
         const user = await createUser(req.body);
         if (user) {
@@ -41,9 +41,11 @@ router.post("/login", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/search", async (req, res) => {
     try {
-        const users = await getAllUsers();
+        const keyword = req.query.keyword || "";
+        const users = await searchUsers(keyword);
+
         res.status(200).json({
             message: "success",
             data: users,

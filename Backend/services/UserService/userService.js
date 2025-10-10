@@ -122,19 +122,28 @@ export const login = async (data) => {
     }
 };
 
-export const getAllUsers = async () => {
+// search users
+export const searchUsers = async (keyword) => {
     try {
-        const sql = `SELECT id, username, first_name, last_name, email, created_at, updated_at 
-                      FROM ${TABLE_NAME}`;
-        const result = await conn.query(sql);
+        if (!keyword) {
+            return [];
+        }
 
-        // if (result.rows.length === 0) {
-        //     throw new Error("No users found.");
-        // }
+        const sql = `
+            SELECT id, username, first_name, last_name, email, created_at, updated_at
+            FROM ${TABLE_NAME}
+            WHERE 
+                username ILIKE $1 OR
+                first_name ILIKE $1 OR
+                last_name ILIKE $1
+        `;
+
+        const values = [`%${keyword}%`];
+        const result = await conn.query(sql, values);
 
         return result.rows;
     } catch (error) {
-        console.log("Error:", error);
+        console.error("Search error:", error);
         throw new Error(error.message);
     }
 };
