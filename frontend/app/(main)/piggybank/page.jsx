@@ -31,9 +31,9 @@ export default function PiggyBankPage() {
         </div>
 
         {/* Balance Circle */}
-        <div className="absolute left-1/2 -bottom-14 transform -translate-x-1/2">
-          <div className="w-36 h-36 rounded-full bg-white shadow-2xl flex flex-col justify-center items-center border-4 border-blue-200 hover:scale-105 transition-transform duration-300">
-            <p className="text-sm text-gray-500">ยอดเงินคงเหลือ</p>
+        <div className="absolute left-1/2 -bottom-18 transform -translate-x-1/2">
+          <div className="w-44 h-44 rounded-full bg-white shadow-xl flex flex-col justify-center items-center border-4 border-blue-200 hover:scale-105 transition-transform duration-300">
+            <p className="text-sm text-gray-500">เป้าหมาย</p>
             <p className="text-2xl font-bold text-green-600">
               ${balance.toFixed(2)}
             </p>
