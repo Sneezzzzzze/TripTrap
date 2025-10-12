@@ -2,7 +2,7 @@ import { createUser, getAllUsers, getUserById, updateUser, deleteUser, login } f
 
 export const handler = async (event) => {
     // TODO implement
-    const { httpMethod, pathParameters } = event
+    const { httpMethod, pathParameters, path } = event
     const response = {
         statusCode: 200,
         body: JSON.stringify(event),
@@ -16,6 +16,11 @@ export const handler = async (event) => {
     
         else if (httpMethod === "GET") {
             const data = await getAllUsers()
+            response.body = JSON.stringify(data)
+        }
+
+        else if (httpMethod === "POST" && path == "/user/credential") {
+            const data = await login(JSON.parse(event.body))
             response.body = JSON.stringify(data)
         }
     
