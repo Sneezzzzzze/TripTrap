@@ -115,10 +115,37 @@ export const login = async (data) => {
             { expiresIn: "1d" }
         );
 
-        return { token, user };
+        const userReturn = {
+            id: user.id,
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            image: user.image,
+        };
+
+        return { token, user: userReturn };
     } catch (error) {
         console.error("Login error:", error);
         throw new Error(error.message);
+    }
+};
+
+export const verifyToken = async (authHeader) => {
+    try {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new Error("Token not provided.");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        const decoded = jwt.verify(token, process.env.SECRET); // ตรวจสอบ token
+        return {
+            id: decoded.id,
+            username: decoded.username,
+        };
+    } catch (err) {
+        throw new Error("Invalid or expired token.");
     }
 };
 
@@ -221,7 +248,7 @@ export const updateUser = async (id, data, file) => {
 export const changePassword = async (data, authHeader) => {
     try {
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            throw new Error("Unauthorized");
+            throw new Error("Unauthorized.");
         }
 
         const token = authHeader.split(" ")[1];

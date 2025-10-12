@@ -7,6 +7,7 @@ import {
     login,
     changePassword,
     searchUsers,
+    verifyToken,
 } from "./userService.js";
 import multer from "multer";
 
@@ -34,7 +35,21 @@ router.post("/login", async (req, res) => {
         res.status(200).json({
             message: "Login successful",
             token: result.token,
-            user: result.user,
+            data: result.user,
+        });
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+});
+
+router.post("/verify", async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const user = await verifyToken(authHeader);
+
+        res.status(200).json({
+            message: "Token is valid",
+            data: user,
         });
     } catch (err) {
         res.status(401).json({ error: err.message });
@@ -86,7 +101,7 @@ router.post("/change-password", async (req, res) => {
 
         res.status(200).json({
             message: "Change Password successful",
-            user: user,
+            data: user,
         });
     } catch (err) {
         res.status(401).json({ error: err.message });
