@@ -3,8 +3,17 @@
 import ProfileCard from "@/app/components/ProfileCard";
 import ProfileName from "@/app/components/ProfileName";
 import ActivityCards from "@/app/components/ActivityCards";
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
+  const router = useRouter();
+  
+  const handleLogout = async (e) => {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('userId');
+    router.push("/login");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-50 font-sans relative overflow-hidden">
       {/* Top Bar */}
@@ -12,10 +21,11 @@ export default function ProfilePage() {
         <p className="text-lg tracking-tight">โปรไฟล์</p>
         <a
           href="/profile/edit"
-          className="absolute top-6 right-6 hover:scale-105 active:scale-95 transition-transform"
+          className="absolute top-6 left-6 hover:scale-105 active:scale-95 transition-transform"
         >
           <img src="/media/Edit.svg" alt="edit" className="w-6 h-6" />
         </a>
+          <button onClick={() => handleLogout()} className="absolute top-6 right-6">logout</button>
       </div>
 
       {/* Profile Section */}

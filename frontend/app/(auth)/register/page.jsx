@@ -40,6 +40,7 @@ export default function Register() {
             </p>
 
             <div className='flex flex-col gap-5 w-[95%]'>
+              <input type="text" placeholder='Username' className='border rounded-2xl py-3 px-3 font-medium'/>
               <input type="text" placeholder='ชื่อ' className='border rounded-2xl py-3 px-3 font-medium'/>
               <input type="text" placeholder='นามสกุล' className='border rounded-2xl py-3 px-3 font-medium'/>
               <input type="text" placeholder='อีเมล' className='border rounded-2xl py-3 px-3 font-medium'/>
