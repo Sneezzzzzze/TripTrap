@@ -3,8 +3,8 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
 import bcrypt from "bcryptjs";
-import { conn } from "./db.mjs";
-import { s3 } from "./s3.mjs";
+import { conn } from "../db.mjs";
+import { s3 } from "../s3.mjs";
 
 dotenv.config();
 const TABLE_NAME = "users";
