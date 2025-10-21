@@ -25,5 +25,35 @@ aws lambda publish-layer-version --layer-name my-node-modules-layer --descriptio
 
 ### Update Environtment Variables
 ```
-aws lambda update-function-configuration --function-name triptrap-user --environment Variables={API_URL=https://api.example.com/v1,DEBUG_MODE=true} --region us-east-1
+aws lambda update-function-configuration 
+    --function-name triptrap-user 
+     --environment '{
+      "Variables": {
+          
+          }
+      }'
+
 ```
+
+```aws 
+aws lambda create-function \
+  --function-name friendShipService \
+  --runtime nodejs22.x \
+  --role arn:aws:iam::659964940487:role/LabRole \
+  --handler index.handler \
+  --code S3Bucket=triptrap-v1,S3Key=friendship.zip \
+  --region us-east-1 \
+  --environment '{
+      "Variables": {
+          
+      }
+  }' \
+  --vpc-config SubnetIds=subnet-050fb5728afc977ed,subnet-0edb8cbfd5f2c986d,SecurityGroupIds=sg-0eee9cb4e2aeedfab
+```
+
+
+
+
+
+
+
