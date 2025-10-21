@@ -37,11 +37,11 @@ aws lambda update-function-configuration
 
 ```aws 
 aws lambda create-function \
-  --function-name friendShipService \
+  --function-name <name>Service \
   --runtime nodejs22.x \
   --role arn:aws:iam::659964940487:role/LabRole \
   --handler index.handler \
-  --code S3Bucket=triptrap-v1,S3Key=friendship.zip \
+  --code S3Bucket=triptrap-v1,S3Key=<name>.zip \
   --region us-east-1 \
   --environment '{
       "Variables": {
