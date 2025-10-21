@@ -1,7 +1,7 @@
 // /ActivityService.js
 import { conn } from "../../utils/db.js";
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "../../utils/s3.js";
+// import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+// import { s3 } from "../../utils/s3.js";
 
 
 import dotenv from "dotenv";
@@ -10,40 +10,40 @@ dotenv.config();
 const TABLE_NAME = "activities";
 
 
-// ลบไฟล์เก่า
-const deleteFromS3 = async (key) => {
+// // ลบไฟล์เก่า
+// const deleteFromS3 = async (key) => {
 
-  if (!key) return;
+//   if (!key) return;
 
-    await s3.send(
-        new DeleteObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key.replace(/^\//, ""), // เอา / หน้า key ออก
-        })
-    );
+//     await s3.send(
+//         new DeleteObjectCommand({
+//             Bucket: process.env.AWS_S3_BUCKET,
+//             Key: key.replace(/^\//, ""), // เอา / หน้า key ออก
+//         })
+//     );
 
-};
+// };
 
 
-// upload ไฟล์ใหม่
-const uploadToS3 = async (file) => {
-    const fileName = Date.now() + "_" + file.originalname;
-    const s3Path = `image/${fileName}`;
+// // upload ไฟล์ใหม่
+// const uploadToS3 = async (file) => {
+//     const fileName = Date.now() + "_" + file.originalname;
+//     const s3Path = `image/${fileName}`;
 
-    await s3.send(new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: s3Path,
-        Body: file.buffer,
-        ContentType: file.mimetype
-    }));
+//     await s3.send(new PutObjectCommand({
+//         Bucket: process.env.AWS_S3_BUCKET,
+//         Key: s3Path,
+//         Body: file.buffer,
+//         ContentType: file.mimetype
+//     }));
 
-    return `/${s3Path}`;
-};
+//     return `/${s3Path}`;
+// };
 
 
 
 // Create Activity
-export const createActivity = async (data, file) => {
+export const createActivity = async (data) => {
 
     try {
         
@@ -57,6 +57,7 @@ export const createActivity = async (data, file) => {
             end_date,
             budget,
             wallet_id,
+            image
         } = data;
 
         // เช้ค ข้อมูล
@@ -71,11 +72,6 @@ export const createActivity = async (data, file) => {
         //     throw new Error("Wallet not found");
         // }
 
-        let imagePath = null;
-
-        if (file) {
-            imagePath = await uploadToS3(file); // upload ใหม่
-        }
 
         // สร้าง activity
         const sql = `
@@ -85,7 +81,7 @@ export const createActivity = async (data, file) => {
             RETURNING *;
         `;
 
-        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId, imagePath];
+        const activityValues  = [title, description, start_date, end_date, location, budget, wallet_id, userId, image];
         const activityRes  = await conn.query(sql, activityValues);
         const activity = activityRes.rows[0];
         
@@ -285,7 +281,7 @@ export const getActivityById = async (id) => {
 
 
 // Update Activity
-export const updateActivity = async (id, data, file) => {
+export const updateActivity = async (id, data) => {
     
     const {
         title,
@@ -294,7 +290,8 @@ export const updateActivity = async (id, data, file) => {
         end_date,
         location,
         budget,
-        wallet_id
+        wallet_id,
+        image
     } = data;
 
     try {
@@ -307,19 +304,6 @@ export const updateActivity = async (id, data, file) => {
             return [];
         }
 
-
-        // ถ้ามีไฟล์รูป ลบไฟล์เก่าแล้ว upload ใหม่
-        let imagePath = checkRes.rows[0].image;
-
-        if (file) {
-            if (imagePath) {
-                await deleteFromS3(imagePath); // ลบไฟล์เก่า
-            }
-
-            imagePath = await uploadToS3(file); // upload ใหม่
-        }
-
-       
 
 
 
@@ -339,7 +323,7 @@ export const updateActivity = async (id, data, file) => {
             WHERE id = $9
             RETURNING *;
         `;
-        const values = [title, description, start_date, end_date, location, budget, wallet_id,imagePath, id];
+        const values = [title, description, start_date, end_date, location, budget, wallet_id,image, id];
         const res = await conn.query(sql, values);
         return res;
 

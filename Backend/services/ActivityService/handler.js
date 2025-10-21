@@ -14,12 +14,12 @@ import multer from "multer"; //upload file from frontend
 
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+// const upload = multer({ storage: multer.memoryStorage() });
 
 // สร้างกิจกรรม
-router.post("/", upload.single("image"), async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const activity = await createActivity(req.body, req.file);
+    const activity = await createActivity(req.body);
 
     if(activity){
         res.status(201).json({
@@ -99,9 +99,9 @@ router.get("/:id", async (req, res) => {
 
 
 // update
-router.put("/:id", upload.single("image"), async (req, res) => {
+router.put("/:id", async (req, res) => {
     try {
-        const result = await updateActivity(req.params.id, req.body, req.file);
+        const result = await updateActivity(req.params.id, req.body);
         
         if (!result || result.length === 0){
              return res.status(404).json({ error: "Activity not found" });
