@@ -49,6 +49,7 @@ aws lambda create-function \
       }
   }' \
   --vpc-config SubnetIds=subnet-050fb5728afc977ed,subnet-0edb8cbfd5f2c986d,SecurityGroupIds=sg-0eee9cb4e2aeedfab
+  --layers arn:aws:lambda:us-east-1:659964940487:layer:my-node-modules-layer:1
 ```
 
 
