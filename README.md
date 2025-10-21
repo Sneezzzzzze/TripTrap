@@ -8,6 +8,12 @@ npm install
 zip -r package.zip ./node_modules
 ```
 
+### Generate Services for Lambda (ZIP)
+```
+cd wrapper
+zip <service>.zip ./db.mjs ./s3.mjs ./<service>/index.mjs ./<service>/service.mjs
+```
+
 ### SET PROFILE IN aws cli (Optional)
 ```bash
 # Linux/macOS
@@ -39,6 +45,8 @@ aws lambda update-function-configuration
       }'
 
 ```
+
+### Create Lambda Function
 
 ```aws 
 aws lambda create-function \
