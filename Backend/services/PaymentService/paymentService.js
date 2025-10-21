@@ -1,9 +1,6 @@
 // /ActivityService.js
 
 import { conn } from "../../utils/db.js";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "../../utils/s3.js";
-
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,24 +8,10 @@ dotenv.config();
 const TABLE_NAME = "payments";
 
 
-// upload ไฟล์ใหม่
-const uploadToS3 = async (file) => {
-    const fileName = Date.now() + "_" + file.originalname;
-    const s3Path = `image/${fileName}`;
-
-    await s3.send(new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: s3Path,
-        Body: file.buffer,
-        ContentType: file.mimetype
-    }));
-
-    return `/${s3Path}`;
-};
-
-
 //Create Payment
-export const createPayment = async (data, file) => {
+export const createPayment = async (data) => {
+
+    console.log("Create Payment with data :", data);
 
     //data
     const{
@@ -36,20 +19,15 @@ export const createPayment = async (data, file) => {
         activityId,
         amount,
         paidAt,
+        slipUrl,
         note
     } = data;
 
     try {
         
         //check data
-        if (!userId, !activityId, !amount, !paidAt, !note) {
+        if (!userId, !activityId, !amount, !paidAt, !slipUrl, !note) {
             throw new Error("Please provide all required fields.");
-        }
-
-        let imagePath = null;
-
-        if (file) {
-            imagePath = await uploadToS3(file); // upload ใหม่
         }
 
         // check user
@@ -68,7 +46,7 @@ export const createPayment = async (data, file) => {
                 RETURNING *;
                 `;
 
-        const paymentValues = [userId, activityId, amount, paidAt, imagePath, note];
+        const paymentValues = [userId, activityId, amount, paidAt, slipUrl, note];
         const paymentRes = await conn.query(sql, paymentValues);
         const payment = paymentRes.rows[0];
 

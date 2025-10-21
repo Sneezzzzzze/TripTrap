@@ -8,12 +8,12 @@ import { createPayment,
     calculateMoney } from "./paymentService.js";
 
 
-import multer from "multer"; //upload file from frontend
+// import multer from "multer"; //upload file from frontend
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+// const upload = multer({ storage: multer.memoryStorage() });
 
 //create payment
-router.post("/", upload.single("slipUrl"),async (req, res) => {
+router.post("/", async (req, res) => {
     try {
         const payment = await createPayment(req.body, req.file);
 
