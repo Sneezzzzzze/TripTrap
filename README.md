@@ -20,7 +20,7 @@ $env:AWS_PROFILE=
 
 ### Upload to s3
 ```
-aws s3 cp friendship.zip s3://triptrap-v1 
+aws s3 cp <name>.zip s3://triptrap-v1 
 ```
 
 ### Upload Node Module to Lambda Layer
