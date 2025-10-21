@@ -193,9 +193,9 @@ export const getUserById = async (id) => {
     }
 };
 
-export const updateUser = async (id, data, file) => {
+export const updateUser = async (id, data) => {
     try {
-        const { first_name, last_name } = data;
+        const { first_name, last_name, image } = data;
 
         const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
         const checkRes = await conn.query(checkSql, [id]);
@@ -208,15 +208,7 @@ export const updateUser = async (id, data, file) => {
 
         const updatedFirstName = first_name || existingUser.first_name;
         const updatedLastName = last_name || existingUser.last_name;
-
-        // จัดการรูปภาพ
-        let imagePath = existingUser.image;
-        if (file) {
-            if (imagePath) {
-                await deleteFromS3(imagePath); // ลบไฟล์เก่า
-            }
-            imagePath = await uploadToS3(file); // upload ใหม่
-        }
+        const updatedImage = image || existingUser.image;
 
         const sql = `
             UPDATE ${TABLE_NAME}
@@ -229,7 +221,7 @@ export const updateUser = async (id, data, file) => {
             RETURNING id, username, first_name, last_name, email, image, created_at, updated_at;
         `;
 
-        const values = [updatedFirstName, updatedLastName, imagePath, id];
+        const values = [updatedFirstName, updatedLastName, updatedImage, id];
 
         const result = await conn.query(sql, values);
         const user = result.rows[0];

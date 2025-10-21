@@ -29,8 +29,9 @@ export const handler = async (event) => {
             response.body = JSON.stringify(data)
         }
 
-        else if (httpMethod === "DELETE" && !!pathParameters.id){
-            const data = await deletePayment(pathParameters.id)
+        else if (httpMethod === "DELETE"){
+            // id
+            const data = await deletePayment(JSON.parse(event.body))
             response.body = JSON.stringify(data)
         }
 

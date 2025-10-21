@@ -14,6 +14,7 @@ cd wrapper
 zip -j <service>.zip ./db.mjs ./s3.mjs ./<service>/index.mjs ./<service>/service.mjs
 ```
 
+## CLI
 ### SET PROFILE IN aws cli (Optional)
 ```bash
 # Linux/macOS
@@ -65,9 +66,7 @@ aws lambda create-function \
   --layers arn:aws:lambda:us-east-1:659964940487:layer:my-node-modules-layer:1
 ```
 
-
-
-
-
-
-
+## Update Lambda Function
+```
+aws lambda update-function-code --function-name <name>Service --code S3Bucket=triptrap-v1,S3Key=<name>.zip
+```

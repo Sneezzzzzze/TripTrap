@@ -1,4 +1,4 @@
-import { createUser, searchUsers, getUserById, updateUser, deleteUser, login, verifyToken } from "./service.mjs";
+import { createUser, searchUsers, getUserById, updateUser, login, verifyToken } from "./service.mjs";
 
 export const handler = async (event) => {
     // TODO implement
@@ -35,8 +35,16 @@ export const handler = async (event) => {
         }
 
         else if (httpMethod === "POST") {
-            // { username, first_name, last_name, email, password }
+            // body { username, first_name, last_name, email, password }
             const data = await createUser(JSON.parse(event.body))
+            response.body = JSON.stringify(data)
+        }
+
+        else if (httpMethod === "PUT" && !!headers.Authorization) {
+            // header Authorization
+            // body { first_name, last_name, image }
+            const { id } = await verifyToken(headers.Authorization)
+            const data = await updateUser(id, JSON.parse(event.body))
             response.body = JSON.stringify(data)
         }
 
