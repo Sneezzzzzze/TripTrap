@@ -2,13 +2,11 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-import bcrypt from "bcryptjs";
-import { conn } from "../db.mjs";
-import { s3 } from "../s3.mjs";
+import { conn } from "./db.mjs";
+import { s3 } from "./s3.mjs";
 
 dotenv.config();
 const TABLE_NAME = "users";
-
 // ลบไฟล์เก่า
 const deleteFromS3 = async (key) => {
     if (!key) return;
@@ -116,12 +114,40 @@ export const login = async (data) => {
             { expiresIn: "1d" }
         );
 
-        return { token, user };
+        const userReturn = {
+            id: user.id,
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            image: user.image,
+        };
+
+        return { token, user: userReturn };
     } catch (error) {
         console.error("Login error:", error);
         throw new Error(error.message);
     }
 };
+
+export const verifyToken = async (authHeader) => {
+    try {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new Error("Token not provided.");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        const decoded = jwt.verify(token, process.env.SECRET); // ตรวจสอบ token
+        return {
+            id: decoded.id,
+            username: decoded.username,
+        };
+    } catch (err) {
+        throw new Error("Invalid or expired token.");
+    }
+};
+
 
 // search users
 export const searchUsers = async (keyword) => {
