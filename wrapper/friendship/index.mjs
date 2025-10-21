@@ -82,6 +82,12 @@ export const handler = async (event) => {
             response.body = JSON.stringify({ error: "Route not found" });
         }
 
+        if (httpMethod === "POST") response.headers = {
+            "Access-Control-Allow-Origin": "*", // สำคัญมาก
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+        }
+
         return response;
 
     } catch (error) {

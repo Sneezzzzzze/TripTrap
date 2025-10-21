@@ -10,9 +10,6 @@ export const handler = async (event) => {
     };
 
     try {
-        if (httpMethod === "POST") response.headers = {
-            "Access-Control-Allow-Origin": "*", // สำคัญมาก
-        }
 
         if (httpMethod === "GET" && !!pathParameters) {
             if (pathParameters.userId) {
@@ -37,6 +34,7 @@ export const handler = async (event) => {
         else if (httpMethod === "POST") {
             // body { username, first_name, last_name, email, password }
             const data = await createUser(JSON.parse(event.body))
+            response.statusCode = 201
             response.body = JSON.stringify(data)
         }
 
@@ -49,6 +47,13 @@ export const handler = async (event) => {
         }
 
         else response.body = JSON.stringify("Invalid Request")
+
+        if (httpMethod === "POST") response.headers = {
+            "Access-Control-Allow-Origin": "*", // สำคัญมาก
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+        }
+
         return response
 
     } catch (error) {

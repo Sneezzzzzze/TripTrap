@@ -23,6 +23,12 @@ export const handler = async (event) => {
       }
     }
 
+    if (httpMethod === "POST") response.headers = {
+      "Access-Control-Allow-Origin": "*", // สำคัญมาก
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+    }
+
     // POST activity/create
     if (httpMethod === "POST" && path === "/activity/create") {
       const data = await createActivity(requestBody);

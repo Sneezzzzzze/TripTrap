@@ -26,6 +26,7 @@ export const handler = async (event) => {
         else if (httpMethod === "POST") {
             // { userId, activityId, amount, paidAt, note, imagePath }
             const data = await createPayment(JSON.parse(event.body))
+            response.statusCode = 201
             response.body = JSON.stringify(data)
         }
 
@@ -36,6 +37,13 @@ export const handler = async (event) => {
         }
 
         else response.body = JSON.stringify("Invalid Request")
+
+        if (httpMethod === "POST") response.headers = {
+            "Access-Control-Allow-Origin": "*", // สำคัญมาก
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+        }
+
         return response
 
     } catch (error) {
