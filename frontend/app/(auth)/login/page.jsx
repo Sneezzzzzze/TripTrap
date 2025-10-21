@@ -13,7 +13,7 @@ export default function Login() {
         e.preventDefault();
 
         try {
-            const response = await axios.post("https://onym7s55ae.execute-api.us-east-1.amazonaws.com/dev/user/credential", {
+            const response = await axios.post("https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user/credential", {
                 username,
                 password,
             });
@@ -59,7 +59,7 @@ export default function Login() {
 
                     <div className='flex flex-col gap-5 w-[95%]'>
                         <input onChange={(e) => setUsername(e.target.value)} type="text" placeholder='Username' className='border rounded-2xl py-3 px-3 font-medium' />
-                        <input onChange={(e) => setPassword(e.target.value)} type="text" placeholder='รหัสผ่าน' className='border rounded-2xl py-3 px-3 font-medium' />
+                        <input onChange={(e) => setPassword(e.target.value)} type="password" placeholder='รหัสผ่าน' className='border rounded-2xl py-3 px-3 font-medium' />
                     </div>
 
                     <div className="flex-grow"></div>

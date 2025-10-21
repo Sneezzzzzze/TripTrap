@@ -32,7 +32,7 @@ export default function Register() {
 
         try {
             const response = await axios.post(
-                "https://onym7s55ae.execute-api.us-east-1.amazonaws.com/dev/user",
+                "https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user",
                 {
                     username,
                     firstname,
