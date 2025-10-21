@@ -6,8 +6,8 @@ import axios from 'axios';
 export default function Register() {
     const router = useRouter();
     const [username, setUsername] = useState("");
-    const [firstname, setFirstname] = useState("");
-    const [lastname, setLastname] = useState("");
+    const [first_name, setFirst_name] = useState("");
+    const [last_name, setLast_name] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmpassword, setConfirmpassword] = useState("");
@@ -20,7 +20,7 @@ export default function Register() {
         setSuccessMessage("");
 
         // ✅ ตรวจสอบข้อมูลเบื้องต้น
-        if (!username || !firstname || !lastname || !email || !password || !confirmpassword) {
+        if (!username || !first_name || !last_name || !email || !password || !confirmpassword) {
             setErrorMessage("กรุณากรอกข้อมูลให้ครบทุกช่อง");
             return;
         }
@@ -35,8 +35,8 @@ export default function Register() {
                 "https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user",
                 {
                     username,
-                    firstname,
-                    lastname,
+                    first_name,
+                    last_name,
                     email,
                     password
                 }
@@ -75,8 +75,8 @@ export default function Register() {
                     {/* ฟอร์มกรอกข้อมูล */}
                     <div className="flex flex-col gap-4 w-[95%]">
                         <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='Username' className='border rounded-2xl py-3 px-3 font-medium' />
-                        <input type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} placeholder='ชื่อ' className='border rounded-2xl py-3 px-3 font-medium' />
-                        <input type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} placeholder='นามสกุล' className='border rounded-2xl py-3 px-3 font-medium' />
+                        <input type="text" value={first_name} onChange={(e) => setFirst_name(e.target.value)} placeholder='ชื่อ' className='border rounded-2xl py-3 px-3 font-medium' />
+                        <input type="text" value={last_name} onChange={(e) => setLast_name(e.target.value)} placeholder='นามสกุล' className='border rounded-2xl py-3 px-3 font-medium' />
                         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder='อีเมล' className='border rounded-2xl py-3 px-3 font-medium' />
                         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder='รหัสผ่าน' className='border rounded-2xl py-3 px-3 font-medium' />
                         <input type="password" value={confirmpassword} onChange={(e) => setConfirmpassword(e.target.value)} placeholder='ยืนยันรหัสผ่าน' className='border rounded-2xl py-3 px-3 font-medium' />
