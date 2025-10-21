@@ -11,7 +11,7 @@ zip -r package.zip ./node_modules
 ### Generate Services for Lambda (ZIP)
 ```
 cd wrapper
-zip <service>.zip ./db.mjs ./s3.mjs ./<service>/index.mjs ./<service>/service.mjs
+zip -j <service>.zip ./db.mjs ./s3.mjs ./<service>/index.mjs ./<service>/service.mjs
 ```
 
 ### SET PROFILE IN aws cli (Optional)
