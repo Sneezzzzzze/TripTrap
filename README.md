@@ -18,6 +18,11 @@ set AWS_PROFILE=
 $env:AWS_PROFILE=
 ```
 
+### Upload to s3
+```
+aws s3 cp friendship.zip s3://triptrap-v1 
+```
+
 ### Upload Node Module to Lambda Layer
 ```
 aws lambda publish-layer-version --layer-name my-node-modules-layer --description "Node.js modules for Lambda" --zip-file fileb://module/package.zip --compatible-runtimes nodejs22.x --region us-east-1
