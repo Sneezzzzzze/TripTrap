@@ -38,7 +38,7 @@ aws lambda publish-layer-version --layer-name my-node-modules-layer --descriptio
 ### Update Environtment Variables
 ```
 aws lambda update-function-configuration \
-    --function-name userService \
+    --function-name <name>Service \
      --environment '{
       "Variables": {
       
@@ -67,5 +67,5 @@ aws lambda create-function \
 
 ## Update Lambda Function
 ```
-aws lambda update-function-code --function-name <name>Service --code S3Bucket=triptrap-v1,S3Key=<name>.zip
+aws lambda update-function-code --function-name <name>Service --s3-bucket triptrap-v1 --s3-key <name>.zip
 ```
