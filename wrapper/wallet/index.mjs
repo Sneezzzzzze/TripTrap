@@ -4,7 +4,7 @@ import {
   getWalletById,
   updateWallet,
   getWallet,
-} from "./walletService.mjs";
+} from "./service.mjs";
 
 export const handler = async (event) => {
   const { httpMethod, path, pathParameters, body } = event;
@@ -89,3 +89,4 @@ export const handler = async (event) => {
     return response;
   }
 };
+
