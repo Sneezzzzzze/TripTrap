@@ -36,12 +36,11 @@ aws lambda publish-layer-version --layer-name my-node-modules-layer --descriptio
 
 ### Update Environtment Variables
 ```
-aws lambda update-function-configuration 
-    --function-name triptrap-user 
+aws lambda update-function-configuration \
+    --function-name userService \
      --environment '{
       "Variables": {
-          
-          }
+      
       }'
 
 ```
