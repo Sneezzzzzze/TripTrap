@@ -9,10 +9,8 @@ import {
     searchUsers,
     verifyToken,
 } from "./userService.js";
-import multer from "multer";
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/register", async (req, res) => {
     try {
@@ -82,17 +80,18 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.put("/:id", upload.single("image"), async (req, res) => {
+router.put("/:id", async (req, res) => {
     try {
-        const user = await updateUser(req.params.id, req.body, req.file);
+        const user = await updateUser(req.params.id, req.body);
         res.status(200).json({
-            message: "update successfully",
+            message: "Update successfully",
             data: user,
         });
     } catch (err) {
         res.status(404).json({ error: err.message });
     }
 });
+
 
 router.post("/change-password", async (req, res) => {
     try {

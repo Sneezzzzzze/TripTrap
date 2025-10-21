@@ -1,41 +1,8 @@
 import bcrypt from "bcryptjs";
 import { conn } from "../../utils/db.js";
 import jwt from "jsonwebtoken";
-import { s3 } from "../../utils/s3.js";
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
-import dotenv from "dotenv";
-dotenv.config();
 const TABLE_NAME = "users";
-
-// ลบไฟล์เก่า
-const deleteFromS3 = async (key) => {
-    if (!key) return;
-
-    await s3.send(
-        new DeleteObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key.replace(/^\//, ""), // เอา / หน้า key ออก
-        })
-    );
-};
-
-// upload ไฟล์ใหม่
-const uploadToS3 = async (file) => {
-    const fileName = Date.now() + "_" + file.originalname;
-    const s3Path = `image/${fileName}`;
-
-    await s3.send(
-        new PutObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: s3Path,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-        })
-    );
-
-    return `/${s3Path}`;
-};
 
 // register user
 export const createUser = async (data) => {
@@ -60,12 +27,6 @@ export const createUser = async (data) => {
 
         // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // let imagePath = null;
-
-        // if (file) {
-        //     imagePath = await uploadToS3(file); // upload ใหม่
-        // }
 
         const sql = `
           INSERT INTO ${TABLE_NAME} (username, first_name, last_name, email, password, created_at, updated_at)
@@ -193,9 +154,9 @@ export const getUserById = async (id) => {
     }
 };
 
-export const updateUser = async (id, data, file) => {
+export const updateUser = async (id, data) => {
     try {
-        const { first_name, last_name } = data;
+        const { first_name, last_name, image } = data;
 
         const checkSql = `SELECT * FROM ${TABLE_NAME} WHERE id = $1`;
         const checkRes = await conn.query(checkSql, [id]);
@@ -208,15 +169,7 @@ export const updateUser = async (id, data, file) => {
 
         const updatedFirstName = first_name || existingUser.first_name;
         const updatedLastName = last_name || existingUser.last_name;
-
-        // จัดการรูปภาพ
-        let imagePath = existingUser.image;
-        if (file) {
-            if (imagePath) {
-                await deleteFromS3(imagePath); // ลบไฟล์เก่า
-            }
-            imagePath = await uploadToS3(file); // upload ใหม่
-        }
+        const updatedImage = image || existingUser.image;
 
         const sql = `
             UPDATE ${TABLE_NAME}
@@ -229,7 +182,7 @@ export const updateUser = async (id, data, file) => {
             RETURNING id, username, first_name, last_name, email, image, created_at, updated_at;
         `;
 
-        const values = [updatedFirstName, updatedLastName, imagePath, id];
+        const values = [updatedFirstName, updatedLastName, updatedImage, id];
 
         const result = await conn.query(sql, values);
         const user = result.rows[0];
@@ -244,6 +197,7 @@ export const updateUser = async (id, data, file) => {
         throw new Error(error.message);
     }
 };
+
 
 export const changePassword = async (data, authHeader) => {
     try {
