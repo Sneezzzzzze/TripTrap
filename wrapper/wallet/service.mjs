@@ -1,5 +1,5 @@
 import { ExecuteStatementCommand } from "@aws-sdk/client-rds-data";
-import { conn } from "../db.mjs";
+import { conn } from "./db.mjs";
 
 const TABLE_NAME = "wallets";
 
@@ -129,3 +129,4 @@ export const deleteWallet = async (id) => {
     throw new Error(error.message);
   }
 };
+
