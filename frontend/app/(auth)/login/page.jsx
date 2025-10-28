@@ -22,6 +22,7 @@ export default function Login() {
                 const user = response.data
                 sessionStorage.setItem("token", user.token);
                 sessionStorage.setItem("userId", user.user.id);
+                sessionStorage.setItem("userName", user.user.username);
                 router.push("/activities");
             }
         } catch (error) {
