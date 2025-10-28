@@ -23,6 +23,8 @@ export default function EditProfile() {
       });
 
       const { url, key } = res.data;
+      console.log(key)
+      const image = key
 
       // Upload ไฟล์ไป S3 ผ่าน signed URL
       const uploadRes = await axios.put(url, file, {
@@ -35,8 +37,22 @@ export default function EditProfile() {
 
       const fileUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${key}`;
       setUploadedFiles(prev => [...prev, { name: file.name, url: fileUrl }]);
+      const token = sessionStorage.getItem("token");
+      const resPic = await axios.put("https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user",
+        { image: key },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const reset = await axios.get("https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user/reset",
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (reset.status === 200) {
+        const user = reset.data
+        sessionStorage.setItem("token", user.token);
+        router.push("/profile");
+      }
+
       setFile(null);
-      router.push("/profile");
+      // router.push("/profile");
     } catch (err) {
       console.error(err);
       alert("Upload failed!");
