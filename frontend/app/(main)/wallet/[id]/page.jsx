@@ -14,7 +14,7 @@ export default function BankDetailPage() {
   useEffect(() => {
     const fetchAccount = async () => {
       try {
-        const url = `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/wallet/user/1`;
+        const url = `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/wallet/${id}`;
         const response = await axios.get(url);
         const rawAccounts = Array.isArray(response.data)
           ? response.data
