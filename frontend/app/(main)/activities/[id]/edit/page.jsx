@@ -7,6 +7,7 @@ import axios from "axios";
 export default function EditActivityPage() {
   const router = useRouter();
   const { id } = useParams();
+  const [file, setFile] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -18,7 +19,6 @@ export default function EditActivityPage() {
     image: "",
   });
   const [previewUrl, setPreviewUrl] = useState("/media/PleaseStop.jpg");
-  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -45,7 +45,6 @@ export default function EditActivityPage() {
           image: data.image || "",
         });
 
-        // 🔹 Load image if available
         if (data.image) {
           try {
             const imgRes = await axios.get(`/api/upload-url`, {
@@ -67,84 +66,71 @@ export default function EditActivityPage() {
     fetchActivity();
   }, [id]);
 
-  // ✅ Handle form input
+  // ✅ Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
+    };
 
-  // ✅ Handle image preview
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result);
-    reader.readAsDataURL(file);
-  };
+    // ✅ Handle image change
+        const handleImageChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (!selectedFile) return;
+        setFile(selectedFile);
 
-  // ✅ Submit updated activity
-  const handleSubmit = async (e) => {
+        const reader = new FileReader();
+        reader.onloadend = () => setPreviewUrl(reader.result);
+        reader.readAsDataURL(selectedFile);
+        };
+
+
+    // ✅ Submit form (PUT request)
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      let imageKey = form.image;
-      const token = sessionStorage.getItem("token");
+        let imageKey = form.image;
 
-      // 🔹 Upload new image if selected
-      if (file) {
-        console.log("Uploading new image to S3...");
-
-        const res = await axios.post("/api/upload-url", {
-          fileName: file.name,
-          fileType: file.type,
+        // ✅ Upload image if a new one is selected
+        if (file) {
+        const uploadRes = await axios.post("/api/upload-url", {
+            fileName: file.name,
+            fileType: file.type,
         });
 
-        const { url, key } = res.data;
-        console.log("Uploaded key:", key);
-
+        const { url, key } = uploadRes.data;
         await axios.put(url, file, {
-          headers: { "Content-Type": file.type },
+            headers: { "Content-Type": file.type },
         });
 
         imageKey = key;
-      }
+        }
 
-      // 🔹 Update activity
-      const updatedData = {
-        name: form.name,
-        description: form.description,
-        location: form.location,
-        budget: form.budget,
-        start_date: form.start_date,
-        end_date: form.end_date,
+        // ✅ Prepare updated data
+        const updatedData = {
+        ...form,
         image: imageKey,
-      };
+        };
 
-      const updateRes = await axios.put(
+        // ✅ Send PUT request to your backend
+        await axios.put(
         `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${id}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+        updatedData
+        );
 
-      if (updateRes.status === 200) {
-        alert("✅ อัปเดตกิจกรรมสำเร็จแล้ว!");
-        router.push(`/activities/${id}`);
-      } else {
-        throw new Error("Update failed!");
-      }
+        alert("อัปเดตกิจกรรมสำเร็จ!");
+        router.back(); // ✅ Return to previous page
 
-      setFile(null);
     } catch (err) {
-      console.error("Error updating activity:", err);
-      alert("❌ เกิดข้อผิดพลาดในการอัปเดตกิจกรรม!");
+        console.error("Error updating activity:", err);
+        alert("เกิดข้อผิดพลาดในการอัปเดตกิจกรรม");
     } finally {
-      setSaving(false);
+        setSaving(false);
     }
-  };
+    };
 
-  // ✅ Loading / error states
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -155,11 +141,9 @@ export default function EditActivityPage() {
   if (error)
     return <p className="text-center text-red-500 mt-10">{error}</p>;
 
-  // ✅ Main form UI
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 px-6 pt-6 mb-20">
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow p-6">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">แก้ไขกิจกรรม</h1>
           <button
@@ -171,7 +155,7 @@ export default function EditActivityPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Image */}
+          {/* Image preview */}
           <div className="flex flex-col items-center space-y-3">
             <img
               src={previewUrl}
@@ -186,12 +170,11 @@ export default function EditActivityPage() {
             />
           </div>
 
-          {/* Fields */}
           <div>
             <label className="block mb-1 font-medium">ชื่อกิจกรรม</label>
             <input
               type="text"
-              name="name"
+              name="title"
               value={form.name}
               onChange={handleChange}
               className="w-full border rounded-lg p-2"
@@ -255,7 +238,6 @@ export default function EditActivityPage() {
             ></textarea>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={saving}

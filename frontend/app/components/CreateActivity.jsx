@@ -17,13 +17,18 @@ export default function CreateActivity() {
   const [budget, setBudget] = useState('');
   const [walletId, setWalletId] = useState('');
   const [wallets, setWallets] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageKey, setImageKey] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // 📸 Handle file uploads (currently not uploaded to backend)
+  // 📸 Handle file selection
   const handleFiles = (files) => {
-    console.log("รูปที่เลือก:", files);
+    if (files.length > 0) {
+      setImageFile(files[0]);
+    }
   };
 
   // 🧩 Fetch user's wallet list
@@ -40,8 +45,6 @@ export default function CreateActivity() {
         const res = await axios.get(
           `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/wallet/user/${userId}`
         );
-        console.log(res.data)
-
         const rawBanks = Array.isArray(res.data)
           ? res.data
           : res.data.data || [];
@@ -54,7 +57,7 @@ export default function CreateActivity() {
           user_id: item.user_id,
         }));
 
-      setWallets(banks);
+        setWallets(banks);
       } catch (err) {
         console.error("Error fetching wallets:", err);
         setError("ไม่สามารถโหลดบัญชีธนาคารได้");
@@ -65,6 +68,28 @@ export default function CreateActivity() {
 
     fetchWallets();
   }, []);
+
+  // 🧠 Upload image to S3 (same logic as profile)
+  const uploadImageToS3 = async () => {
+    if (!imageFile) return null;
+    try {
+      const res = await axios.post("/api/upload-url", {
+        fileName: imageFile.name,
+        fileType: imageFile.type,
+      });
+
+      const { url, key } = res.data;
+      await axios.put(url, imageFile, {
+        headers: { "Content-Type": imageFile.type },
+      });
+
+      setImageKey(key);
+      return key;
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      throw new Error("อัปโหลดรูปภาพไม่สำเร็จ");
+    }
+  };
 
   // 📨 Handle activity creation
   const handleCreateActivity = async () => {
@@ -79,19 +104,26 @@ export default function CreateActivity() {
       return;
     }
 
-    const payload = {
-      title,
-      description,
-      userId,
-      location,
-      start_date: startDate,
-      end_date: endDate,
-      budget: Number(budget) || 0,
-      wallet_id: walletId,
-    };
-
     try {
       setSubmitting(true);
+
+      let uploadedKey = imageKey;
+      if (imageFile && !uploadedKey) {
+        uploadedKey = await uploadImageToS3();
+      }
+
+      const payload = {
+        title,
+        description,
+        userId,
+        location,
+        start_date: startDate,
+        end_date: endDate,
+        budget: Number(budget) || 0,
+        wallet_id: walletId,
+        image: uploadedKey || null, // ✅ attach S3 key if uploaded
+      };
+
       await axios.post(
         "https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity",
         payload
@@ -114,11 +146,13 @@ export default function CreateActivity() {
         {/* Image upload */}
         <div className="mb-6">
           <DragDropImageBox maxSizeMB={4} onChange={handleFiles} />
+          {imageFile && (
+            <p className="text-sm text-gray-600 mt-2">ไฟล์ที่เลือก: {imageFile.name}</p>
+          )}
         </div>
 
         {/* Form */}
         <div className="bg-white rounded-2xl px-1 py-6 space-y-4">
-          {/* Activity Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               ตั้งชื่อกิจกรรม
@@ -132,7 +166,6 @@ export default function CreateActivity() {
             />
           </div>
 
-          {/* Dates */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -158,7 +191,6 @@ export default function CreateActivity() {
             </div>
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               รายละเอียดกิจกรรม
@@ -172,7 +204,6 @@ export default function CreateActivity() {
             />
           </div>
 
-          {/* Location */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               สถานที่
@@ -186,7 +217,6 @@ export default function CreateActivity() {
             />
           </div>
 
-          {/* Goal */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               ตั้งเป้าหมาย
@@ -200,7 +230,6 @@ export default function CreateActivity() {
             />
           </div>
 
-          {/* Wallet select */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               เลือกบัญชีธนาคารรับเงิน
@@ -223,17 +252,16 @@ export default function CreateActivity() {
             )}
           </div>
 
-          {/* Submit */}
           <button
             onClick={handleCreateActivity}
             disabled={submitting}
             className={`w-full py-3 rounded-xl font-semibold text-lg text-white shadow-md transition-all duration-300 ${
               submitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-blue-500 to-indigo-500 hover:shadow-lg active:scale-[0.97]"
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:shadow-lg active:scale-[0.97]'
             }`}
           >
-            {submitting ? "กำลังสร้าง..." : "สร้าง"}
+            {submitting ? 'กำลังสร้าง...' : 'สร้าง'}
           </button>
 
           {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
