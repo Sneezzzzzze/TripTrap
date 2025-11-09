@@ -11,6 +11,11 @@ export default function TogglePage({ activity }) {
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [newMemberId, setNewMemberId] = useState("");
 
+  const [friends, setFriends] = useState([]);
+  const [search, setSearch] = useState("");
+  const [selectedFriends, setSelectedFriends] = useState([]);
+  const token = sessionStorage.getItem("token");
+
   useEffect(() => {
     if (activity?.members?.length) {
       setMembers(activity.members);
@@ -28,7 +33,47 @@ export default function TogglePage({ activity }) {
       };
       if (activity?.activity_id) fetchMembers();
     }
+    fetchFriends();
   }, [activity]);
+
+  async function fetchMembers() {
+    try {
+      const res = await axios.get(
+        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${activity.activity_id}`
+      );
+      console.log("Members:", res.data[0].members);
+      if (Array.isArray(res.data[0].members)) setMembers(res.data[0].members);
+    } catch (err) {
+      console.warn("ไม่สามารถโหลดข้อมูลสมาชิกได้:", err);
+    }
+  }
+
+  async function fetchFriends() {
+    try {
+      const frRes = await axios.get(
+        "https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/friendship",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const friendList = Array.isArray(frRes.data) ? frRes.data : [];
+      setFriends(friendList);
+      console.log('friendlist', friendList)
+    } catch (e) {
+      setFriends([]);
+      console.error(e)
+    }
+  }
+
+  const filteredFriends = friends.filter((f) =>
+    f.username.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleFriend = (user_id) => {
+    setSelectedFriends((prev) =>
+      prev.includes(user_id)
+        ? prev.filter((id) => id !== user_id)
+        : [...prev, user_id]
+    );
+  };
 
   // ✅ Helper: format date
   const formatDate = (dateString) => {
@@ -42,14 +87,23 @@ export default function TogglePage({ activity }) {
 
   // ✅ Delete member
   const handleDeleteMember = async () => {
+    console.log([memberToDelete])
     if (!memberToDelete) return;
     try {
       await axios.delete(
-        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${activity.activity_id}/member/${memberToDelete}`
+        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/member`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { // ✅ ต้องใส่ใน data แบบนี้
+            activity_id: activity.activity_id,
+            member: [memberToDelete], // ส่งเป็น array
+          },
+        }
       );
-      setMembers((prev) =>
-        prev.filter((member) => member.user_id !== memberToDelete)
-      );
+      // setMembers((prev) =>
+      //   prev.filter((member) => member.user_id !== memberToDelete)
+      // );
+      fetchMembers();
       setShowConfirm(false);
       alert("ลบสมาชิกเรียบร้อยแล้ว");
     } catch (err) {
@@ -60,14 +114,16 @@ export default function TogglePage({ activity }) {
 
   // ✅ Add member
   const handleAddMember = async () => {
-    if (!newMemberId.trim()) return alert("กรุณากรอก user_id ของสมาชิก");
+    // if (!newMemberId.trim()) return alert("กรุณากรอก user_id ของสมาชิก");
     try {
       await axios.post(
-        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${activity.activity_id}/member`,
-        { user_id: newMemberId }
+        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/member`,
+        { activity_id: activity.activity_id, member: selectedFriends },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMembers((prev) => [...prev, { user_id: newMemberId }]);
-      setNewMemberId("");
+      // setMembers((prev) => [...prev, { user_id: newMemberId }]);
+      // setNewMemberId("");
+      fetchMembers();
       setShowAddPopup(false);
       alert("เพิ่มสมาชิกเรียบร้อยแล้ว");
     } catch (err) {
@@ -82,21 +138,19 @@ export default function TogglePage({ activity }) {
       <div className="flex gap-4 mb-2 p-4 justify-center">
         <button
           onClick={() => setActive("left")}
-          className={`text-lg font-medium pb-1 ${
-            active === "left"
-              ? "border-b-2 border-[#106681] text-[#106681]"
-              : "text-gray-500"
-          }`}
+          className={`text-lg font-medium pb-1 ${active === "left"
+            ? "border-b-2 border-[#106681] text-[#106681]"
+            : "text-gray-500"
+            }`}
         >
           รายละเอียดกิจกรรม
         </button>
         <button
           onClick={() => setActive("right")}
-          className={`text-lg font-medium pb-1 ${
-            active === "right"
-              ? "border-b-2 border-[#106681] text-[#106681]"
-              : "text-gray-500"
-          }`}
+          className={`text-lg font-medium pb-1 ${active === "right"
+            ? "border-b-2 border-[#106681] text-[#106681]"
+            : "text-gray-500"
+            }`}
         >
           สมาชิก
         </button>
@@ -162,7 +216,7 @@ export default function TogglePage({ activity }) {
                     className="w-12 h-12 rounded-full object-cover ring-2 ring-[#106681]/20"
                   />
                   <span className="text-gray-800 text-sm overflow-hidden whitespace-nowrap text-ellipsis">
-                    {member.user_id || "ไม่ทราบชื่อ"}
+                    {member.username || "ไม่ทราบชื่อ"}
                   </span>
 
                   {/* ❌ Delete overlay */}
@@ -229,12 +283,46 @@ export default function TogglePage({ activity }) {
             <h2 className="text-center font-semibold mb-3">เพิ่มสมาชิกใหม่</h2>
             <input
               type="text"
-              placeholder="กรอก user_id"
-              value={newMemberId}
-              onChange={(e) => setNewMemberId(e.target.value)}
-              className="w-full border rounded-lg p-2 mb-4"
+              placeholder="🔍 ค้นหาเพื่อน..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-[#106681]"
             />
-            <div className="flex justify-center gap-4">
+
+            {/* กล่องรายชื่อเพื่อน (fix ขนาด, scroll ได้) */}
+            <div className="border rounded-xl max-h-60 overflow-y-auto p-2 space-y-1 mb-4">
+              {filteredFriends.length > 0 ? (
+                filteredFriends.map((friend) => (
+                  <label
+                    key={friend.friend_id}
+                    className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFriends.includes(friend.friend_id)}
+                      onChange={() => toggleFriend(friend.friend_id)}
+                      className="accent-[#106681]"
+                    />
+                    <span className="text-gray-800">{friend.username}</span>
+                  </label>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-3">ไม่พบเพื่อน</div>
+              )}
+            </div>
+
+            {/* รายชื่อที่เลือก */}
+            {selectedFriends.length > 0 && (
+              <div className="mt-3 text-sm text-gray-700">
+                <strong>สมาชิกที่เลือก:</strong>{" "}<br />
+                {selectedFriends
+                  .map(
+                    (id) => friends.find((f) => f.friend_id === id)?.username || id
+                  )
+                  .join(", ")}
+              </div>
+            )}
+            <div className="flex justify-center gap-4 mt-2">
               <button
                 onClick={handleAddMember}
                 className="bg-[#106681] text-white px-4 py-2 rounded-xl hover:bg-[#0d566e] transition"

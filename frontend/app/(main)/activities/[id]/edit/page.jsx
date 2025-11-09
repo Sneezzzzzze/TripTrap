@@ -174,7 +174,7 @@ export default function EditActivityPage() {
             <label className="block mb-1 font-medium">ชื่อกิจกรรม</label>
             <input
               type="text"
-              name="title"
+              name="name"
               value={form.name}
               onChange={handleChange}
               className="w-full border rounded-lg p-2"
