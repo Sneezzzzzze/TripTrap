@@ -1,270 +1,108 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React from 'react';
 import axios from "axios";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-export default function EditActivityPage() {
+export default function EditProfile() {
   const router = useRouter();
-  const { id } = useParams();
-
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    location: "",
-    budget: "",
-    start_date: "",
-    end_date: "",
-    image: "",
-  });
-  const [previewUrl, setPreviewUrl] = useState("/media/PleaseStop.jpg");
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // ✅ Fetch existing activity data
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchActivity = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(
-          `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${id}`
-        );
-        const data = Array.isArray(res.data) ? res.data[0] : res.data;
-
-        setForm({
-          name: data.name || "",
-          description: data.description || "",
-          location: data.location || "",
-          budget: data.budget || "",
-          start_date: data.start_date?.split("T")[0] || "",
-          end_date: data.end_date?.split("T")[0] || "",
-          image: data.image || "",
-        });
-
-        // 🔹 Load image if available
-        if (data.image) {
-          try {
-            const imgRes = await axios.get(`/api/upload-url`, {
-              params: { key: data.image },
-            });
-            if (imgRes.status === 200) setPreviewUrl(imgRes.data.url);
-          } catch {
-            console.warn("Failed to load image URL");
-          }
-        }
-      } catch (err) {
-        console.error("Error loading activity:", err);
-        setError("ไม่สามารถโหลดข้อมูลกิจกรรมได้");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchActivity();
-  }, [id]);
-
-  // ✅ Handle form input
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ✅ Handle image preview
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result);
-    reader.readAsDataURL(file);
-  };
-
-  // ✅ Submit updated activity
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+  async function handleUpload() {
+    if (!file) return alert("กรุณาเลือกไฟล์!");
 
     try {
-      let imageKey = form.image;
+      // ขอ signed URL จาก backend
+      const res = await axios.post("/api/upload-url", {
+        fileName: file.name,
+        fileType: file.type,
+      });
+
+      const { url, key } = res.data;
+      console.log(key)
+      const image = key
+
+      // Upload ไฟล์ไป S3 ผ่าน signed URL
+      const uploadRes = await axios.put(url, file, {
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (uploadRes.status !== 200) throw new Error("Upload failed!");
+
+      const fileUrl = `https://${process.env.NEXT_PUBLIC_AWS_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${key}`;
+      setUploadedFiles(prev => [...prev, { name: file.name, url: fileUrl }]);
       const token = sessionStorage.getItem("token");
-
-      // 🔹 Upload new image if selected
-      if (file) {
-        console.log("Uploading new image to S3...");
-
-        const res = await axios.post("/api/upload-url", {
-          fileName: file.name,
-          fileType: file.type,
-        });
-
-        const { url, key } = res.data;
-        console.log("Uploaded key:", key);
-
-        await axios.put(url, file, {
-          headers: { "Content-Type": file.type },
-        });
-
-        imageKey = key;
-      }
-
-      // 🔹 Update activity
-      const updatedData = {
-        name: form.name,
-        description: form.description,
-        location: form.location,
-        budget: form.budget,
-        start_date: form.start_date,
-        end_date: form.end_date,
-        image: imageKey,
-      };
-
-      const updateRes = await axios.put(
-        `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${id}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const resPic = await axios.put("https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user",
+        { image: key },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
-
-      if (updateRes.status === 200) {
-        alert("✅ อัปเดตกิจกรรมสำเร็จแล้ว!");
-        router.push(`/activities/${id}`);
-      } else {
-        throw new Error("Update failed!");
-      }
+      const reset = await axios.get("https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/user/reset",
+        { headers: { Authorization: `Bearer ${token}` } },
+);
+      if (reset.status === 200) {
+        const user = reset.data
+        sessionStorage.setItem("token", user.token);
+        router.push("/profile");
+        }
 
       setFile(null);
+      // router.push("/profile");
     } catch (err) {
-      console.error("Error updating activity:", err);
-      alert("❌ เกิดข้อผิดพลาดในการอัปเดตกิจกรรม!");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ✅ Loading / error states
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-500 animate-pulse">กำลังโหลด...</p>
-      </div>
-    );
-
-  if (error)
-    return <p className="text-center text-red-500 mt-10">{error}</p>;
-
-  // ✅ Main form UI
+      console.error(err);
+      alert("Upload failed!");
+         }
+  }
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">แก้ไขกิจกรรม</h1>
-          <button
-            onClick={() => router.back()}
-            className="text-gray-500 hover:text-black transition"
-          >
-            ย้อนกลับ
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Image */}
-          <div className="flex flex-col items-center space-y-3">
-            <img
-              src={previewUrl}
-              alt="activity"
-              className="w-48 h-48 object-cover rounded-xl shadow"
-            />
-            <input
+    <>
+      <div className="flex flex-col items-center mt-2 mb-6">
+        <div className="relative w-32 h-32 rounded-full ring-4 ring-white shadow-md">
+          <img
+            src={file ? URL.createObjectURL(file) : '/profilepic/profile.jpg'}
+            alt="profile pic"
+            className="w-full h-full rounded-full object-cover"
+          />
+          <label className="absolute bottom-1 right-1 bg-blue-500 hover:bg-blue-600 p-2 rounded-full shadow-md cursor-pointer transition">
+            <img src="/media/camera.svg" alt="camera" className="w-4 h-4" />
+<input
               type="file"
+              className="hidden"
               accept="image/*"
-              onChange={handleImageChange}
-              className="text-sm text-gray-600"
-            />
-          </div>
-
-          {/* Fields */}
-          <div>
-            <label className="block mb-1 font-medium">ชื่อกิจกรรม</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-medium">วันเริ่มกิจกรรม</label>
-              <input
-                type="date"
-                name="start_date"
-                value={form.start_date}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
+              onChange={(e) => setFile(e.target.files[0])}
               />
-            </div>
-            <div>
-              <label className="block mb-1 font-medium">วันสิ้นสุดกิจกรรม</label>
-              <input
-                type="date"
-                name="end_date"
-                value={form.end_date}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">สถานที่</label>
-            <input
-              type="text"
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">งบประมาณรวม (บาท)</label>
-            <input
-              type="number"
-              name="budget"
-              value={form.budget}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium">รายละเอียดกิจกรรม</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={4}
-              className="w-full border rounded-lg p-2"
-            ></textarea>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-[#106681] hover:bg-[#0d566e] text-white py-2 rounded-xl transition"
-          >
-            {saving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-          </button>
-        </form>
+          </label>
+        </div>
+        <p className="mt-3 text-gray-800 font-semibold text-lg">Bess Kanisorn</p>
       </div>
-    </div>
-  );
+
+      <div className="bg-white rounded-t-[2rem] shadow-[0_-6px_20px_rgba(0,0,0,0.1)] px-6 pt-10 pb-20 relative z-10">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="px-6 pb-28 space-y-4">
+            {/* First & Last Name */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">ชื่อ</label>
+                <input type="text" placeholder="ชื่อ" className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">นามสกุล</label>
+                <input type="text" placeholder="นามสกุล" className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 font-medium focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 outline-none" />
+              </div>
+            </div>
+
+          {/* Floating Save Button */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 px-6 py-4 bg-white/80 backdrop-blur-md border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+            <button
+              onClick={handleUpload}
+              className="w-full py-3 rounded-xl bg-gradient-to-r bg-[#106681] text-white font-semibold text-lg shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-300"
+            >
+              บันทึก
+            </button>
+            </div>
+        </div>
+ </div>
+    </>
+      );
 }
