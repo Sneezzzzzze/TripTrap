@@ -26,24 +26,26 @@ export default function Wallet() {
         const response = await axios.get(url);
         console.log("API data:", response.data);
 
-        // Fix: use response.data.data if API wraps it
+        // ✅ Always safely convert API response to array
         const rawAccounts = Array.isArray(response.data)
           ? response.data
-          : response.data.data || [];
+          : Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
 
+        // ✅ Map raw data to frontend format
         const accounts = rawAccounts.map((item) => ({
           id: item.id,
           name: item.bank_name,
-          lastDigits: item.account_number.slice(-4),
+          lastDigits: item.account_number?.slice(-4) || "XXXX",
           account_number: item.account_number,
           user_id: item.user_id,
           default: false,
         }));
 
-setBankAccounts(accounts);
-        
+        setBankAccounts(accounts);
       } catch (error) {
-        console.error("Error fetching bank accounts:", error);
+        console.error("❌ Error fetching bank accounts:", error);
       } finally {
         setLoading(false);
       }
