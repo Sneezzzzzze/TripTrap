@@ -15,14 +15,16 @@ export default function ProfileCard() {
       const userData = await FetchUserProfile();
       if (userData.status == 200) {
         setProfileData(userData.data);
-        const res = await axios.get(`/api/upload-url`, {
-          // สมมติว่า Route Handler ของคุณคือ /api/upload-url
-          params: { // ต้องใช้ 'params'
-            key: userData.data.image, // นี่คือค่า key ของ S3 Object ที่คุณเก็บไว้ใน userData
-          },
-        });
-        if (res.status == 200) {
-          setImg(res.data.url)
+        if(userData.data.image != null){
+          const res = await axios.get(`/api/upload-url`, {
+            // สมมติว่า Route Handler ของคุณคือ /api/upload-url
+            params: { // ต้องใช้ 'params'
+              key: userData.data.image, // นี่คือค่า key ของ S3 Object ที่คุณเก็บไว้ใน userData
+            },
+          });
+          if (res.status == 200) {
+            setImg(res.data.url)
+          }
         }
       }
     } catch (error) {
