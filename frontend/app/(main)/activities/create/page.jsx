@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import CreateActivity from "@/app/components/CreateActivity";
+import { CreateActivity } from "@/app/components/CreateActivity";
 
 export default function CreateActivityPage() {
   return (
