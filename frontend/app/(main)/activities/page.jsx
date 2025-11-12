@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import CreateActivityBtn from "@/app/components/CreateActivityBtn";
+import CreateActivityBtn from "../../components/CreateActivityBtn";
 import axios from "axios";
 
 export default function ActivitiesPage() {

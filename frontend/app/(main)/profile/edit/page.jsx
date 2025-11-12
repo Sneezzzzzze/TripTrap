@@ -1,6 +1,6 @@
 "use client";
 
-import EditProfile from "@/app/components/EditProfile";
+import EditProfile from "../../../components/EditProfile";
 
 export default function EditProfilePage() {
   return (

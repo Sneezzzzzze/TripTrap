@@ -1,7 +1,6 @@
 
 
-import ProfileCard from "@/app/components/ProfileCard";
-
+import ProfileCard from "../../components/ProfileCard";
 
 export default function ProfilePage() {
 

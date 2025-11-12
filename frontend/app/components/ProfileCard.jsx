@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { FetchUserProfile } from "../api/userApi";
-import ActivityCards from "@/app/components/ActivityCards";
+import ActivityCards from "../components/ActivityCards";
 import axios from "axios";
 
 export default function ProfileCard() {

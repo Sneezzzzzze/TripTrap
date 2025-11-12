@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TogglePage from "@/app/components/TogglePage";
+import TogglePage from "../../../components/TogglePage";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 
