@@ -1,4 +1,6 @@
-const { withAmplifyAdapter } = require('@aws-amplify/adapter-nextjs');
+const amplifyAdapter = require('@aws-amplify/adapter-nextjs');
+
+console.log('Amplify Adapter exports:', Object.keys(amplifyAdapter));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,5 +11,4 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-// Export with the Amplify adapter wrapper
-module.exports = withAmplifyAdapter(nextConfig);
+module.exports = nextConfig;
