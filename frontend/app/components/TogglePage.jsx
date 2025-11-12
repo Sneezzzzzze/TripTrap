@@ -26,7 +26,7 @@ export default function TogglePage({ activity }) {
   }, [activity]);
 
   useEffect(() => {
-    if (members.length > 0) {
+    if (members.length >= 0) {
       fetchMembersPic();
       fetchFriends();
     }

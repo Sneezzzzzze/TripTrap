@@ -8,6 +8,7 @@ import axios from "axios";
 export default function ActivitiesPage() {
   const router = useRouter();
   const [activities, setActivities] = useState([]);
+  const [joinedActivities, setJoinedActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState();
@@ -64,14 +65,53 @@ export default function ActivitiesPage() {
       }
     };
 
+    const fetchJoinedActivities = async () => {
+      try {
+        // 🔹 Fetch activities
+        const response = await axios.get(
+          `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/user/join/${userId}`
+        );
+        console.log(response)
+
+        let activityJoinList = [];
+        if (Array.isArray(response.data)) {
+          activityJoinList = response.data;
+        } else if (Array.isArray(response.data.activities)) {
+          activityJoinList = response.data.activities;
+        }
+
+        // 🔹 For each activity, get signed image URL if image key exists
+        const updatedActivities = await Promise.all(
+          activityJoinList.map(async (activity) => {
+            if (activity.image) {
+              try {
+                const res = await axios.get(`/api/upload-url`, {
+                  params: { key: activity.image },
+                });
+                if (res.status === 200 && res.data.url) {
+                  return { ...activity, imageUrl: res.data.url };
+                }
+              } catch (err) {
+                console.warn(`Error fetching image for ${activity.name}`, err);
+              }
+            }
+            // fallback
+            return { ...activity, imageUrl: "/media/PleaseStop.jpg" };
+          })
+        );
+
+        setJoinedActivities(updatedActivities);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError("ไม่สามารถดึงข้อมูลกิจกรรมได้");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJoinedActivities();
     fetchActivities();
   }, []);
-
-  const joinedActivities = activities.filter(
-    (a) =>
-      Array.isArray(a.members) &&
-      a.members.some((m) => m.user_id === userId)
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white font-sans relative">
@@ -135,7 +175,7 @@ export default function ActivitiesPage() {
                   <h1 className="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition">
                     {activity.name || "กิจกรรมไม่มีชื่อ"}
                   </h1>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 truncate mb-13">
                     {activity.start_date
                       ? `เริ่มวันที่ ${new Date(activity.start_date).toLocaleDateString(
                         "th-TH"
@@ -170,7 +210,7 @@ export default function ActivitiesPage() {
         {error && <p className="text-center text-red-500 mt-6">{error}</p>}
 
         {!loading && !error && joinedActivities.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-2 gap-4 mt-4 mb-8">
             {joinedActivities.map((activity) => (
               <div
                 key={activity.activity_id}
@@ -188,7 +228,7 @@ export default function ActivitiesPage() {
                   <h1 className="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition">
                     {activity.name || "กิจกรรมไม่มีชื่อ"}
                   </h1>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 truncate mb-13">
                     {activity.start_date
                       ? `เริ่มวันที่ ${new Date(activity.start_date).toLocaleDateString(
                         "th-TH"
@@ -196,13 +236,16 @@ export default function ActivitiesPage() {
                       : "ยังไม่ระบุวันที่"}
                   </p>
                 </div>
+
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
               </div>
             ))}
           </div>
         ) : (
           !loading &&
           !error && (
-            <p className="text-center text-gray-400 mt-6">
+            <p className="text-center text-gray-400 mt-6 mb-6">
               ยังไม่มีกิจกรรมที่เข้าร่วม
             </p>
           )
