@@ -9,32 +9,28 @@ export default function TogglePage({ activity }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [showAddPopup, setShowAddPopup] = useState(false);
-  const [newMemberId, setNewMemberId] = useState("");
 
   const [friends, setFriends] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedFriends, setSelectedFriends] = useState([]);
+  const [memberImages, setMemberImages] = useState({});
   const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     if (activity?.members?.length) {
       setMembers(activity.members);
     } else {
-      const fetchMembers = async () => {
-        try {
-          const res = await axios.get(
-            `https://1ww13nlkz3.execute-api.us-east-1.amazonaws.com/dev/activity/${activity.activity_id}`
-          );
-          console.log("Members:", res.data);
-          if (Array.isArray(res.data)) setMembers(res.data);
-        } catch (err) {
-          console.warn("ไม่สามารถโหลดข้อมูลสมาชิกได้:", err);
-        }
-      };
+      fetchMembers();
       if (activity?.activity_id) fetchMembers();
     }
-    fetchFriends();
   }, [activity]);
+
+  useEffect(() => {
+    if (members.length > 0) {
+      fetchMembersPic();
+      fetchFriends();
+    }
+  }, [members]);
 
   async function fetchMembers() {
     try {
@@ -48,6 +44,27 @@ export default function TogglePage({ activity }) {
     }
   }
 
+  async function fetchMembersPic() {
+    const updatedImages = {};
+    await Promise.all(
+      members.map(async (member) => {
+        if (member.image) {
+          try {
+            const res = await axios.get(`/api/upload-url`, {
+              params: { key: member.image },
+            });
+            updatedImages[member.user_id] = res.data.url;
+          } catch {
+            updatedImages[member.user_id] = "/profilepic/profile.jpg";
+          }
+        } else {
+          updatedImages[member.user_id] = "/profilepic/profile.jpg";
+        }
+      })
+    );
+    setMemberImages(updatedImages);
+  }
+
   async function fetchFriends() {
     try {
       const frRes = await axios.get(
@@ -55,8 +72,17 @@ export default function TogglePage({ activity }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const friendList = Array.isArray(frRes.data) ? frRes.data : [];
-      setFriends(friendList);
-      console.log('friendlist', friendList)
+
+      // ดึง user_id ของสมาชิกทั้งหมดใน activity
+      const memberIds = members.map((m) => m.user_id);
+
+
+      const filtered = friendList.filter(
+        (friend) => !memberIds.includes(friend.friend_id)
+      );
+
+      setFriends(filtered);
+      console.log('friendlist (filtered)', filtered)
     } catch (e) {
       setFriends([]);
       console.error(e)
@@ -125,6 +151,7 @@ export default function TogglePage({ activity }) {
       // setNewMemberId("");
       fetchMembers();
       setShowAddPopup(false);
+      setSelectedFriends([]);
       alert("เพิ่มสมาชิกเรียบร้อยแล้ว");
     } catch (err) {
       console.error("Error adding member:", err);
@@ -211,7 +238,7 @@ export default function TogglePage({ activity }) {
                   onMouseLeave={() => setHoveredId(null)}
                 >
                   <img
-                    src={member.img || "/profilepic/profile.jpg"}
+                    src={memberImages[member.user_id] || "/profilepic/profile.jpg"}
                     alt={member.name || "สมาชิก"}
                     className="w-12 h-12 rounded-full object-cover ring-2 ring-[#106681]/20"
                   />

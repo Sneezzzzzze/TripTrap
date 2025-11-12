@@ -10,9 +10,11 @@ export default function ActivitiesPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState();
 
   useEffect(() => {
     const userId = sessionStorage.getItem("userId");
+    setUserId(userId)
     if (!userId) {
       setError("ไม่พบข้อมูลผู้ใช้");
       setLoading(false);
@@ -64,6 +66,12 @@ export default function ActivitiesPage() {
 
     fetchActivities();
   }, []);
+
+  const joinedActivities = activities.filter(
+    (a) =>
+      Array.isArray(a.members) &&
+      a.members.some((m) => m.user_id === userId)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white font-sans relative">
@@ -130,8 +138,8 @@ export default function ActivitiesPage() {
                   <p className="text-xs text-gray-500 truncate">
                     {activity.start_date
                       ? `เริ่มวันที่ ${new Date(activity.start_date).toLocaleDateString(
-                          "th-TH"
-                        )}`
+                        "th-TH"
+                      )}`
                       : "ยังไม่ระบุวันที่"}
                   </p>
                 </div>
@@ -155,9 +163,50 @@ export default function ActivitiesPage() {
         <h2 className="text-gray-800 font-semibold text-lg mb-3">
           กิจกรรมที่เข้าร่วม
         </h2>
-        <p className="text-center text-gray-400 mt-6">
-          (ยังไม่รองรับข้อมูลกิจกรรมที่เข้าร่วม)
-        </p>
+
+        {loading && (
+          <p className="text-center text-gray-500 mt-6">กำลังโหลดข้อมูล...</p>
+        )}
+        {error && <p className="text-center text-red-500 mt-6">{error}</p>}
+
+        {!loading && !error && joinedActivities.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {joinedActivities.map((activity) => (
+              <div
+                key={activity.activity_id}
+                onClick={() => router.push(`/activities/${activity.activity_id}`)}
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 active:scale-95"
+              >
+                <div className="h-[70%] overflow-hidden">
+                  <img
+                    src={activity.imageUrl || "/media/PleaseStop.jpg"}
+                    alt={activity.name || "กิจกรรม"}
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-3">
+                  <h1 className="text-sm font-semibold text-gray-800 truncate group-hover:text-blue-600 transition">
+                    {activity.name || "กิจกรรมไม่มีชื่อ"}
+                  </h1>
+                  <p className="text-xs text-gray-500 truncate">
+                    {activity.start_date
+                      ? `เริ่มวันที่ ${new Date(activity.start_date).toLocaleDateString(
+                        "th-TH"
+                      )}`
+                      : "ยังไม่ระบุวันที่"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          !loading &&
+          !error && (
+            <p className="text-center text-gray-400 mt-6">
+              ยังไม่มีกิจกรรมที่เข้าร่วม
+            </p>
+          )
+        )}
       </section>
 
       {/* Floating Button */}
