@@ -19,6 +19,7 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@aws-amplify/adapter-nextjs": "^1.6.11",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "24.5.2",
