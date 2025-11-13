@@ -1,0 +1,15 @@
+services:
+  triptrap:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - 80:3000
+      - 443:3000
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - NEXT_PUBLIC_AWS_REGION=${NEXT_PUBLIC_AWS_REGION}
+      - NEXT_PUBLIC_AWS_S3_BUCKET=${NEXT_PUBLIC_AWS_S3_BUCKET}
+
