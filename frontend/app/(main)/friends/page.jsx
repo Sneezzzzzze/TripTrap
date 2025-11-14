@@ -26,7 +26,18 @@ export default function FriendsPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const list = Array.isArray(res.data) ? res.data : [];
+      let list = Array.isArray(res.data) ? res.data : [];
+      list = list.map(async (friend) => {
+        if (friend.image) {
+          const res = await axios.get(`/api/upload-url`, {
+            params: { key: friend.image },
+          });
+          if (res.status === 200 && res.data.url) {
+            friend.image = res.data.url
+          }
+        }
+        return friend
+      })
       setFriends(list);
     } catch (err) {
       console.error("❌ reloadFriends error:", err);
@@ -259,8 +270,8 @@ export default function FriendsPage() {
                 >
                   <div className="flex items-center">
                     <img
-                      src="/profilepic/profile.jpg"
-                      alt={friend.username}
+                      src={friend.image ?? "/profilepic/profile.jpg"}
+                      alt={"Picture of " + friend.username}
                       className="w-12 h-12 rounded-full object-cover ring-2 ring-[#106681]/20"
                     />
                     <div className="ml-4">
